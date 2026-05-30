@@ -1,0 +1,1 @@
+SELECT setval('public.equipment_id_seq', (SELECT COALESCE(MAX(id),1) FROM public.equipment));
