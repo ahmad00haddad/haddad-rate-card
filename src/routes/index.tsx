@@ -3,27 +3,27 @@ import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Your App" },
-      { name: "description", content: "Replace this with a one-sentence description of your app." },
-      { property: "og:title", content: "Your App" },
-      { property: "og:description", content: "Replace this with a one-sentence description of your app." },
+      { title: "Ahmad Haddad — Cinematic Filmmaker · إربد" },
+      { name: "description", content: "قائمة تسعيرات أحمد حداد — تصوير سينمائي، ريلز، أفلام، إعلانات، وثائقيات، إيفنتات، مونتاج وتلوين." },
+      { property: "og:title", content: "Ahmad Haddad — Cinematic Filmmaker" },
+      { property: "og:description", content: "قائمة التسعيرات ومعرض المعدات" },
     ],
   }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
 function Index() {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
+    <iframe
+      src="/ratecard.html"
+      title="Rate Card"
+      style={{
+        position: "fixed",
+        inset: 0,
+        width: "100%",
+        height: "100%",
+        border: "none",
+      }}
+    />
   );
 }
