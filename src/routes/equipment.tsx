@@ -123,12 +123,6 @@ function EquipmentPage() {
                     <span style={metaLabel}>الفئة:</span> <span style={metaValue}>{item.category}</span>
                   </p>
                 )}
-                <div style={statusRow}>
-                  <span style={{ ...dot, background: item.is_available ? "#3ddc97" : "#7a7a7a" }} />
-                  <span style={{ color: item.is_available ? "#3ddc97" : "#9b948a", fontSize: 12, fontWeight: 700, letterSpacing: 1 }}>
-                    {item.is_available ? "متاح" : "غير متاح"}
-                  </span>
-                </div>
               </div>
             </article>
           ))}
