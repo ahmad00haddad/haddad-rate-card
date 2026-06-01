@@ -29,7 +29,6 @@ export function SiteHeader() {
       <nav style={{ display: "flex", gap: 14, alignItems: "center" }}>
         <Link to="/" style={navStyle}>التسعيرات</Link>
         <Link to="/equipment" style={navStyle}>المعدات</Link>
-        <Link to="/admin" style={navStyle}>الإدارة</Link>
       </nav>
     </header>
   );
