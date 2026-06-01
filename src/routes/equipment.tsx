@@ -46,6 +46,7 @@ function EquipmentPage() {
   });
 
   const [active, setActive] = useState<string>("الكل");
+  const [query, setQuery] = useState("");
   const categories = useMemo(() => {
     const set = new Set<string>();
     (data ?? []).forEach((e) => e.category && set.add(e.category));
@@ -54,35 +55,40 @@ function EquipmentPage() {
 
   const filtered = useMemo(() => {
     if (!data) return [];
-    return active === "الكل" ? data : data.filter((e) => e.category === active);
-  }, [data, active]);
+    const q = query.trim().toLowerCase();
+    return data.filter((e) => {
+      if (active !== "الكل" && e.category !== active) return false;
+      if (q && !(`${e.name} ${e.description ?? ""}`.toLowerCase().includes(q))) return false;
+      return true;
+    });
+  }, [data, active, query]);
 
   return (
     <div dir="rtl" style={page}>
       <SiteNav />
-      <section style={{ padding: "60px 24px 24px", textAlign: "center", maxWidth: 1200, margin: "0 auto" }}>
+      <section style={{ padding: "70px 24px 18px", textAlign: "center", maxWidth: 1100, margin: "0 auto" }}>
         <p style={kicker}>المعرض</p>
-        <h1 style={h1}>المعدات السينمائية</h1>
+        <h1 style={h1}>معداتنا</h1>
         <p style={lead}>
           مجموعة من المعدات الاحترافية المستخدمة في إنتاج الأفلام والإعلانات والريلز.
         </p>
       </section>
 
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 10, justifyContent: "center", padding: "0 24px 32px", maxWidth: 1200, margin: "0 auto" }}>
-        {categories.map((c) => (
-          <button
-            key={c}
-            onClick={() => setActive(c)}
-            style={{
-              ...chip,
-              background: active === c ? "#f49921" : "transparent",
-              color: active === c ? "#0e0f11" : "#f0ece4",
-              borderColor: active === c ? "#f49921" : "rgba(244,153,33,0.35)",
-            }}
-          >
-            {c}
-          </button>
-        ))}
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "8px 24px 24px", display: "grid", gridTemplateColumns: "1fr 280px", gap: 14 }}>
+        <div style={searchWrap}>
+          <span style={{ color: "#f49921", fontSize: 14 }}>⌕</span>
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="ابحث عن المعدات..."
+            style={searchInput}
+          />
+        </div>
+        <select value={active} onChange={(e) => setActive(e.target.value)} style={selectStyle}>
+          {categories.map((c) => (
+            <option key={c} value={c} style={{ background: "#15171a" }}>{c}</option>
+          ))}
+        </select>
       </div>
 
       <main style={{ maxWidth: 1280, margin: "0 auto", padding: "0 24px 80px" }}>
@@ -91,8 +97,8 @@ function EquipmentPage() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-            gap: 20,
+            gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+            gap: 28,
           }}
         >
           {filtered.map((item) => (
@@ -103,16 +109,26 @@ function EquipmentPage() {
                     src={item.image_path}
                     alt={item.name}
                     loading="lazy"
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    style={{ width: "85%", height: "85%", objectFit: "contain" }}
                   />
                 ) : (
                   <div style={{ color: "#5a544c", fontSize: 12 }}>لا توجد صورة</div>
                 )}
-                {item.category && <span style={badge}>{item.category}</span>}
               </div>
-              <div style={{ padding: "16px 16px 18px" }}>
+              <div style={cardBody}>
                 <h3 style={cardTitle}>{item.name}</h3>
                 {item.description && <p style={cardDesc}>{item.description}</p>}
+                {item.category && (
+                  <p style={metaLine}>
+                    <span style={metaLabel}>الفئة:</span> <span style={metaValue}>{item.category}</span>
+                  </p>
+                )}
+                <div style={statusRow}>
+                  <span style={{ ...dot, background: item.is_available ? "#3ddc97" : "#7a7a7a" }} />
+                  <span style={{ color: item.is_available ? "#3ddc97" : "#9b948a", fontSize: 12, fontWeight: 700, letterSpacing: 1 }}>
+                    {item.is_available ? "متاح" : "غير متاح"}
+                  </span>
+                </div>
               </div>
             </article>
           ))}
@@ -137,7 +153,6 @@ function SiteNav() {
       <nav style={{ display: "flex", gap: 10 }}>
         <Link to="/" style={navBtn}>التسعيرات</Link>
         <Link to="/equipment" style={{ ...navBtn, background: "#f49921", color: "#0e0f11", borderColor: "#f49921" }}>المعدات</Link>
-        <Link to="/admin" style={navBtn}>الإدارة</Link>
       </nav>
     </header>
   );
@@ -149,11 +164,18 @@ const navBtn = { padding: "8px 16px", border: "1px solid rgba(244,153,33,0.35)",
 const kicker = { color: "#f49921", letterSpacing: 4, fontSize: 12, marginBottom: 12 } as const;
 const h1 = { fontFamily: "'Playfair Display', serif", fontSize: "clamp(36px, 5vw, 56px)", margin: 0, color: "#f0ece4" } as const;
 const lead = { color: "#a39d93", marginTop: 14, maxWidth: 620, marginInline: "auto", lineHeight: 1.7 } as const;
-const chip = { padding: "10px 22px", border: "1px solid", borderRadius: 999, fontSize: 13, fontWeight: 600, cursor: "pointer", letterSpacing: 1, transition: "all .25s" } as const;
-const card = { background: "#15171a", border: "1px solid rgba(244,153,33,0.15)", borderRadius: 6, overflow: "hidden", display: "flex", flexDirection: "column" as const, transition: "transform .3s, border-color .3s" };
-const imgBox = { position: "relative" as const, aspectRatio: "1/1", background: "#0a0b0d", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" };
-const badge = { position: "absolute" as const, top: 10, insetInlineStart: 10, background: "rgba(244,153,33,0.92)", color: "#0e0f11", fontSize: 11, fontWeight: 700, padding: "4px 10px", borderRadius: 2, letterSpacing: 1 };
-const cardTitle = { margin: 0, fontSize: 16, color: "#f0ece4", fontWeight: 600 } as const;
-const cardDesc = { margin: "8px 0 0", fontSize: 13, color: "#9b948a", lineHeight: 1.6 } as const;
+const searchWrap = { display: "flex", alignItems: "center", gap: 10, padding: "0 16px", background: "#15171a", border: "1px solid rgba(244,153,33,0.15)", borderRadius: 10, height: 48 } as const;
+const searchInput = { flex: 1, background: "transparent", border: "none", outline: "none", color: "#f0ece4", fontSize: 14, fontFamily: "inherit", textAlign: "right" as const } as const;
+const selectStyle = { background: "#15171a", border: "1px solid rgba(244,153,33,0.15)", borderRadius: 10, color: "#f0ece4", padding: "0 16px", height: 48, fontSize: 14, fontFamily: "inherit", cursor: "pointer", appearance: "none" as const } as const;
+const card = { background: "#15171a", border: "1px solid rgba(244,153,33,0.12)", borderRadius: 14, overflow: "hidden", display: "flex", flexDirection: "column" as const, boxShadow: "0 10px 30px rgba(0,0,0,0.35)", transition: "transform .3s ease, border-color .3s ease, box-shadow .3s ease" };
+const imgBox = { aspectRatio: "1/1", background: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", padding: 18 } as const;
+const cardBody = { padding: "22px 22px 24px", textAlign: "center" as const, display: "flex", flexDirection: "column" as const, gap: 10 } as const;
+const cardTitle = { margin: 0, fontSize: 19, color: "#f49921", fontWeight: 700, lineHeight: 1.4 } as const;
+const cardDesc = { margin: 0, fontSize: 13.5, color: "#a39d93", lineHeight: 1.7 } as const;
+const metaLine = { margin: "4px 0 0", fontSize: 13, color: "#cfc8bd" } as const;
+const metaLabel = { color: "#f0ece4", fontWeight: 700 } as const;
+const metaValue = { color: "#a39d93" } as const;
+const statusRow = { display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 6 } as const;
+const dot = { width: 8, height: 8, borderRadius: 999, display: "inline-block" } as const;
 const errBox = { minHeight: "60vh", display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center", gap: 16, color: "#f0ece4", background: "#0e0f11" };
 const btnGold = { background: "#f49921", color: "#0e0f11", border: "none", padding: "10px 24px", fontWeight: 700, cursor: "pointer" } as const;
