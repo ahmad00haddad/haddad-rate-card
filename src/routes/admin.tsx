@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session } from "@supabase/supabase-js";
+import { estimateEquipmentPrice } from "@/lib/equipment-ai.functions";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "لوحة الإدارة — المعدات" }, { name: "robots", content: "noindex" }] }),
@@ -142,6 +144,10 @@ function AdminPanel() {
   const [editing, setEditing] = useState<Equipment | null>(null);
   const [form, setForm] = useState<Omit<Equipment, "id">>(emptyForm());
   const [saving, setSaving] = useState(false);
+  const [query, setQuery] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiMsg, setAiMsg] = useState<string | null>(null);
+  const runEstimate = useServerFn(estimateEquipmentPrice);
 
   function startNew() { setEditing(null); setForm(emptyForm()); }
   function startEdit(e: Equipment) { setEditing(e); const { id: _id, ...rest } = e; setForm(rest); }
@@ -149,7 +155,7 @@ function AdminPanel() {
   async function save(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
-    const payload = { ...form, original_price: Number(form.original_price), rental_percentage: Number(form.rental_percentage), daily_rental_price: Number(form.daily_rental_price) };
+    const payload = { ...form, original_price: Number(form.original_price), rental_percentage: 0, daily_rental_price: 0 };
     const { error } = editing
       ? await supabase.from("equipment").update(payload).eq("id", editing.id)
       : await supabase.from("equipment").insert(payload);
@@ -168,59 +174,135 @@ function AdminPanel() {
     qc.invalidateQueries({ queryKey: ["equipment"] });
   }
 
-  return (
-    <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 380px)", gap: 24 }}>
-      <section>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-          <h2 style={{ fontFamily: "'Playfair Display', serif", color: "#f0ece4", margin: 0 }}>المعدات ({data?.length ?? 0})</h2>
-          <button onClick={startNew} style={btnGold}>+ جديد</button>
-        </div>
-        {isLoading && <p style={{ color: "#9b948a" }}>تحميل…</p>}
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {data?.map((it) => (
-            <div key={it.id} style={{ display: "flex", gap: 12, padding: 12, background: "#15171a", border: "1px solid rgba(244,153,33,0.15)", borderRadius: 4 }}>
-              <div style={{ width: 80, height: 80, background: "#0a0b0d", flexShrink: 0, overflow: "hidden", borderRadius: 2 }}>
-                {it.image_path && <img src={it.image_path} alt={it.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
-                  <strong style={{ color: "#f0ece4" }}>{it.name}</strong>
-                  <span style={{ fontSize: 11, color: "#f49921" }}>{it.category}</span>
-                </div>
-                <p style={{ margin: "4px 0 8px", color: "#9b948a", fontSize: 12, overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{it.description}</p>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button onClick={() => startEdit(it)} style={btnSm}>تعديل</button>
-                  <button onClick={() => remove(it.id)} style={{ ...btnSm, borderColor: "#ef6c6c", color: "#ef6c6c" }}>حذف</button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+  async function aiEstimate() {
+    if (!form.name.trim()) { setAiMsg("أدخل اسم المعدّة أولاً"); return; }
+    setAiLoading(true); setAiMsg(null);
+    try {
+      const r = await runEstimate({ data: { name: form.name, category: form.category, description: form.description } });
+      setForm({ ...form, original_price: r.price });
+      setAiMsg(`تم التقدير (${r.confidence})${r.notes ? " — " + r.notes : ""}`);
+    } catch (err) {
+      setAiMsg((err as Error).message);
+    } finally {
+      setAiLoading(false);
+    }
+  }
 
-      <aside style={{ position: "sticky", top: 90, alignSelf: "start", background: "#15171a", padding: 20, border: "1px solid rgba(244,153,33,0.2)", borderRadius: 4 }}>
-        <h3 style={{ fontFamily: "'Playfair Display', serif", color: "#f0ece4", margin: "0 0 16px" }}>
-          {editing ? `تعديل #${editing.id}` : "إضافة جديدة"}
-        </h3>
-        <form onSubmit={save} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <label style={lbl}>الاسم<input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} style={input} /></label>
-          <label style={lbl}>الفئة<input value={form.category ?? ""} onChange={(e) => setForm({ ...form, category: e.target.value })} style={input} /></label>
-          <label style={lbl}>الوصف<textarea rows={3} value={form.description ?? ""} onChange={(e) => setForm({ ...form, description: e.target.value })} style={{ ...input, resize: "vertical" }} /></label>
-          <label style={lbl}>رابط الصورة<input value={form.image_path ?? ""} onChange={(e) => setForm({ ...form, image_path: e.target.value })} style={input} /></label>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-            <label style={lbl}>السعر الأصلي<input type="number" step="0.01" value={form.original_price} onChange={(e) => setForm({ ...form, original_price: Number(e.target.value) })} style={input} /></label>
-            <label style={lbl}>سعر اليوم<input type="number" step="0.01" value={form.daily_rental_price} onChange={(e) => setForm({ ...form, daily_rental_price: Number(e.target.value) })} style={input} /></label>
+  const stats = useMemo(() => {
+    const items = data ?? [];
+    const total = items.length;
+    const available = items.filter((i) => i.is_available).length;
+    const totalValue = items.reduce((s, i) => s + Number(i.original_price || 0), 0);
+    const categories = new Set(items.map((i) => i.category).filter(Boolean)).size;
+    return { total, available, unavailable: total - available, totalValue, categories };
+  }, [data]);
+
+  const categories = useMemo(() => {
+    const s = new Set<string>();
+    (data ?? []).forEach((e) => e.category && s.add(e.category));
+    return ["الكل", ...Array.from(s)];
+  }, [data]);
+  const [cat, setCat] = useState("الكل");
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return (data ?? []).filter((it) => {
+      if (cat !== "الكل" && it.category !== cat) return false;
+      if (q && !`${it.name} ${it.description ?? ""}`.toLowerCase().includes(q)) return false;
+      return true;
+    });
+  }, [data, query, cat]);
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
+      <div>
+        <p style={{ color: "#f49921", fontSize: 12, letterSpacing: 3, margin: 0 }}>لوحة التحكم</p>
+        <h1 style={{ fontFamily: "'Playfair Display', serif", color: "#f0ece4", margin: "6px 0 0", fontSize: 32 }}>نظرة عامة</h1>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14 }}>
+        <StatCard label="إجمالي المعدات" value={stats.total} />
+        <StatCard label="المتاحة" value={stats.available} accent="#3ddc97" />
+        <StatCard label="غير المتاحة" value={stats.unavailable} accent="#ef6c6c" />
+        <StatCard label="عدد الفئات" value={stats.categories} />
+        <StatCard label="القيمة الإجمالية" value={`${stats.totalValue.toLocaleString()} د.أ`} wide />
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 400px)", gap: 24, alignItems: "start" }}>
+        <section>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, gap: 10, flexWrap: "wrap" }}>
+            <h2 style={{ fontFamily: "'Playfair Display', serif", color: "#f0ece4", margin: 0, fontSize: 22 }}>المعدات ({filtered.length})</h2>
+            <button onClick={startNew} style={btnGold}>+ إضافة معدّة</button>
           </div>
-          <label style={{ ...lbl, flexDirection: "row", alignItems: "center", gap: 8 }}>
-            <input type="checkbox" checked={form.is_available} onChange={(e) => setForm({ ...form, is_available: e.target.checked })} />
-            متوفر
-          </label>
-          <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-            <button type="submit" disabled={saving} style={{ ...btnGold, flex: 1 }}>{saving ? "..." : editing ? "حفظ" : "إضافة"}</button>
-            {editing && <button type="button" onClick={startNew} style={btnSm}>إلغاء</button>}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 200px", gap: 10, marginBottom: 14 }}>
+            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="بحث..." style={input} />
+            <select value={cat} onChange={(e) => setCat(e.target.value)} style={input}>
+              {categories.map((c) => <option key={c} value={c} style={{ background: "#15171a" }}>{c}</option>)}
+            </select>
           </div>
-        </form>
-      </aside>
+          {isLoading && <p style={{ color: "#9b948a" }}>تحميل…</p>}
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {filtered.map((it) => (
+              <div key={it.id} style={{ display: "flex", gap: 12, padding: 12, background: "#15171a", border: "1px solid rgba(244,153,33,0.15)", borderRadius: 8 }}>
+                <div style={{ width: 80, height: 80, background: "#fff", flexShrink: 0, overflow: "hidden", borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center", padding: 4 }}>
+                  {it.image_path && <img src={it.image_path} alt={it.name} style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "baseline" }}>
+                    <strong style={{ color: "#f0ece4" }}>{it.name}</strong>
+                    <span style={{ fontSize: 11, color: "#f49921" }}>{it.category}</span>
+                  </div>
+                  <p style={{ margin: "4px 0 8px", color: "#9b948a", fontSize: 12, overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{it.description}</p>
+                  <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                    <span style={{ fontSize: 12, color: "#cfc8bd" }}>السعر: <strong style={{ color: "#f0ece4" }}>{Number(it.original_price).toLocaleString()} د.أ</strong></span>
+                    <span style={{ flex: 1 }} />
+                    <button onClick={() => startEdit(it)} style={btnSm}>تعديل</button>
+                    <button onClick={() => remove(it.id)} style={{ ...btnSm, borderColor: "#ef6c6c", color: "#ef6c6c" }}>حذف</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {!isLoading && filtered.length === 0 && <p style={{ color: "#9b948a", textAlign: "center", padding: 20 }}>لا توجد نتائج.</p>}
+          </div>
+        </section>
+
+        <aside style={{ position: "sticky", top: 90, background: "#15171a", padding: 22, border: "1px solid rgba(244,153,33,0.2)", borderRadius: 10 }}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", color: "#f0ece4", margin: "0 0 16px", fontSize: 20 }}>
+            {editing ? `تعديل #${editing.id}` : "إضافة معدّة جديدة"}
+          </h3>
+          <form onSubmit={save} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <label style={lbl}>الاسم<input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} style={input} /></label>
+            <label style={lbl}>الفئة<input value={form.category ?? ""} onChange={(e) => setForm({ ...form, category: e.target.value })} style={input} /></label>
+            <label style={lbl}>الوصف<textarea rows={3} value={form.description ?? ""} onChange={(e) => setForm({ ...form, description: e.target.value })} style={{ ...input, resize: "vertical" }} /></label>
+            <label style={lbl}>رابط الصورة<input value={form.image_path ?? ""} onChange={(e) => setForm({ ...form, image_path: e.target.value })} style={input} /></label>
+            <label style={lbl}>
+              سعر الشراء (د.أ)
+              <input type="number" step="0.01" value={form.original_price} onChange={(e) => setForm({ ...form, original_price: Number(e.target.value) })} style={input} />
+            </label>
+            <button type="button" onClick={aiEstimate} disabled={aiLoading} style={{ ...btnSm, padding: "10px 12px", opacity: aiLoading ? 0.6 : 1 }}>
+              {aiLoading ? "جاري التقدير…" : "✦ اقتراح السعر بالذكاء الاصطناعي"}
+            </button>
+            {aiMsg && <p style={{ fontSize: 12, color: aiMsg.startsWith("تم") ? "#86efac" : "#ef6c6c", margin: 0 }}>{aiMsg}</p>}
+            <label style={{ ...lbl, flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <input type="checkbox" checked={form.is_available} onChange={(e) => setForm({ ...form, is_available: e.target.checked })} />
+              متوفر
+            </label>
+            <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+              <button type="submit" disabled={saving} style={{ ...btnGold, flex: 1 }}>{saving ? "..." : editing ? "حفظ التعديلات" : "إضافة"}</button>
+              {editing && <button type="button" onClick={startNew} style={btnSm}>إلغاء</button>}
+            </div>
+          </form>
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+function StatCard({ label, value, accent, wide }: { label: string; value: number | string; accent?: string; wide?: boolean }) {
+  return (
+    <div style={{ background: "#15171a", border: "1px solid rgba(244,153,33,0.18)", borderRadius: 12, padding: "18px 20px", gridColumn: wide ? "span 2" : undefined }}>
+      <p style={{ margin: 0, color: "#9b948a", fontSize: 12, letterSpacing: 1 }}>{label}</p>
+      <p style={{ margin: "8px 0 0", fontFamily: "'Playfair Display', serif", fontSize: 28, color: accent ?? "#f49921", fontWeight: 700 }}>{value}</p>
     </div>
   );
 }
