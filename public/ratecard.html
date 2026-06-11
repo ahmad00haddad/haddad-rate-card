@@ -180,6 +180,77 @@ header {
 }
 .step-line.done { background: var(--gold); }
 
+/* ─── REGION SELECT (step 0) ─── */
+.region-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 22px;
+  max-width: 760px;
+  margin: 0 auto;
+}
+.region-card {
+  background: var(--dark2);
+  border: 1px solid #2a2f33;
+  padding: 48px 28px;
+  text-align: center;
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+  font-family: 'SFMada', sans-serif;
+  color: var(--text);
+}
+.region-card::before {
+  content:'';
+  position:absolute; top:0; left:0; right:0; height:3px;
+  background: var(--gold);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform .5s cubic-bezier(.4,0,.2,1);
+}
+.region-card:hover::before { transform: scaleX(1); }
+.region-card:hover {
+  background: var(--dark3);
+  border-color: var(--gold-border);
+  transform: translateY(-4px);
+}
+.region-icon { font-size: 42px; display:block; margin-bottom: 14px; }
+.region-name-ar {
+  font-family: 'Playfair Display', serif;
+  font-size: 26px; font-weight: 700;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+.region-name-en {
+  font-size: 12px; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--text-muted);
+  margin-bottom: 10px;
+}
+.region-desc { font-size: 13px; color: var(--text-soft); }
+
+/* region badge shown above service / pricing */
+.region-badge {
+  display:inline-flex; align-items:center; gap:10px;
+  background: var(--dark2);
+  border: 1px solid var(--gold-border);
+  padding: 8px 16px;
+  font-size: 13px;
+  color: var(--text-soft);
+  margin: 0 auto 24px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.region-badge:hover { background: var(--dark3); border-color: var(--gold); color: var(--gold); }
+.region-badge strong { color: var(--gold); font-weight: 700; }
+.region-badge-wrap { text-align:center; }
+
+@media (max-width: 640px) {
+  .region-grid { gap: 14px; }
+  .region-card { padding: 32px 16px; }
+  .region-icon { font-size: 34px; }
+  .region-name-ar { font-size: 22px; }
+}
+
 /* ─── MAIN CONTAINER ─── */
 .container {
   max-width: 860px;
@@ -504,24 +575,54 @@ body.en .wa-float { left: auto; right: 28px; }
   <div class="steps-bar">
     <div class="step-item">
       <div class="step-dot active" id="dot1">1</div>
-      <span class="step-label active" id="lbl1" data-ar="اختر الخدمة" data-en="Pick Service">اختر الخدمة</span>
+      <span class="step-label active" id="lbl1" data-ar="المنطقة" data-en="Region">المنطقة</span>
     </div>
     <div class="step-line" id="line1"></div>
     <div class="step-item">
       <div class="step-dot" id="dot2">2</div>
-      <span class="step-label" id="lbl2" data-ar="عرض الأسعار" data-en="View Pricing">عرض الأسعار</span>
+      <span class="step-label" id="lbl2" data-ar="الخدمة" data-en="Service">الخدمة</span>
     </div>
     <div class="step-line" id="line2"></div>
     <div class="step-item">
       <div class="step-dot" id="dot3">3</div>
-      <span class="step-label" id="lbl3" data-ar="تواصل" data-en="Contact">تواصل</span>
+      <span class="step-label" id="lbl3" data-ar="السعر" data-en="Pricing">السعر</span>
     </div>
   </div>
 </div>
 
 <div class="container">
 
-  <div id="step1">
+  <div id="step0">
+    <div class="section-title">
+      <h2 id="s0Title">أين سيتم التصوير؟</h2>
+      <p id="s0Sub">اختر المنطقة لعرض الأسعار الخاصة بها</p>
+    </div>
+    <div class="region-grid">
+      <div class="region-card" onclick="selectRegion('irbid')">
+        <span class="region-icon">📍</span>
+        <div class="region-name-ar" data-ar="إربد" data-en="Irbid">إربد</div>
+        <div class="region-name-en">Irbid</div>
+        <div class="region-desc" data-ar="شمال الأردن" data-en="Northern Jordan">شمال الأردن</div>
+      </div>
+      <div class="region-card" onclick="selectRegion('amman')">
+        <span class="region-icon">🏙️</span>
+        <div class="region-name-ar" data-ar="عمّان" data-en="Amman">عمّان</div>
+        <div class="region-name-en">Amman</div>
+        <div class="region-desc" data-ar="العاصمة" data-en="The Capital">العاصمة</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="step1" style="display:none;">
+    <div class="region-badge-wrap">
+      <div class="region-badge" onclick="goToRegion()">
+        <span>📍</span>
+        <span data-ar="المنطقة:" data-en="Region:">المنطقة:</span>
+        <strong id="regionBadgeText1">—</strong>
+        <span style="opacity:.6">·</span>
+        <span data-ar="تغيير" data-en="Change">تغيير</span>
+      </div>
+    </div>
     <div class="section-title">
       <h2 id="s1Title">ما الخدمة التي تحتاجها؟</h2>
       <p id="s1Sub">اضغط على الخدمة لعرض الأسعار</p>
@@ -619,6 +720,16 @@ body.en .wa-float { left: auto; right: 28px; }
       <span id="backArrow">→</span>
       <span id="backText">العودة لقائمة الخدمات</span>
     </button>
+
+    <div class="region-badge-wrap">
+      <div class="region-badge" onclick="goToRegion()">
+        <span>📍</span>
+        <span data-ar="المنطقة:" data-en="Region:">المنطقة:</span>
+        <strong id="regionBadgeText2">—</strong>
+        <span style="opacity:.6">·</span>
+        <span data-ar="تغيير" data-en="Change">تغيير</span>
+      </div>
+    </div>
 
     <div class="detail-panel" id="panel-reels">
       <div class="section-title">
@@ -1034,6 +1145,137 @@ body.en .wa-float { left: auto; right: 28px; }
 // ─── STATE ───
 let currentLang = 'ar';
 let currentPanel = null;
+let selectedRegion = null; // 'irbid' | 'amman'
+
+const REGION_LABELS = {
+  irbid: { ar: 'إربد', en: 'Irbid' },
+  amman: { ar: 'عمّان', en: 'Amman' },
+};
+
+// detect a row's region from its data-ar / data-en attributes (stable across language)
+function rowRegion(row){
+  let s = '';
+  row.querySelectorAll('[data-ar]').forEach(e => {
+    s += ' ' + (e.getAttribute('data-ar')||'') + ' ' + (e.getAttribute('data-en')||'');
+  });
+  const ir = /إربد|Irbid/i.test(s);
+  const am = /عمّان|عمان|Amman/i.test(s);
+  if (ir && am) return 'both';
+  if (ir) return 'irbid';
+  if (am) return 'amman';
+  return 'all';
+}
+
+// On 'both' rows, the Amman price lives inside .price-note-sm as e.g. "400+ JOD · Amman"
+// or "400+ JOD/day · Amman". Parse it so we can swap the visible price for Amman users.
+function parseAmmanNote(noteText){
+  if (!noteText) return null;
+  const m = noteText.match(/(\d+\+?)\s*JOD(\/day)?/i);
+  if (!m) return null;
+  return { value: m[1], perDay: !!m[2] };
+}
+
+function applyRegion(){
+  if (!selectedRegion) return;
+  document.querySelectorAll('.pricing-row').forEach(row => {
+    if (!row.dataset.region) row.dataset.region = rowRegion(row);
+    const region = row.dataset.region;
+    const priceCol = row.querySelector('.price-col');
+
+    // snapshot original price-col once
+    if (priceCol && !priceCol.dataset.origStored) {
+      priceCol.dataset.origStored = '1';
+      priceCol.dataset.origHtml = priceCol.innerHTML;
+    }
+
+    // hide/show by region
+    if (region === 'irbid' && selectedRegion === 'amman') { row.style.display = 'none'; return; }
+    if (region === 'amman' && selectedRegion === 'irbid') { row.style.display = 'none'; return; }
+    row.style.display = '';
+
+    if (!priceCol) return;
+    // restore baseline before re-applying
+    priceCol.innerHTML = priceCol.dataset.origHtml;
+
+    if (region === 'both' && selectedRegion === 'amman') {
+      const note = priceCol.querySelector('.price-note-sm');
+      const parsed = note ? parseAmmanNote(note.textContent) : null;
+      if (parsed) {
+        const priceNum = priceCol.querySelector('.price-num');
+        const priceUnit = priceCol.querySelector('.price-unit-sm');
+        const priceLabel = priceCol.querySelector('.price-label-sm');
+        if (priceLabel) {
+          priceLabel.removeAttribute('data-ar');
+          priceLabel.removeAttribute('data-en');
+          priceLabel.textContent = currentLang === 'en' ? 'Amman — from' : 'عمّان — يبدأ من';
+        }
+        if (priceNum) {
+          priceNum.textContent = parsed.value;
+          priceNum.style.fontSize = '';
+        }
+        if (priceUnit) priceUnit.textContent = parsed.perDay
+          ? (currentLang === 'en' ? 'JOD / day' : 'JOD / يوم')
+          : 'JOD';
+        note.remove();
+      }
+    } else if (selectedRegion === 'irbid') {
+      // hide Amman comparison note from Irbid users so they don't see Amman pricing
+      const note = priceCol.querySelector('.price-note-sm');
+      if (note && /عمّان|عمان|Amman/i.test(note.textContent)) note.remove();
+    }
+  });
+}
+
+function updateRegionBadges(){
+  if (!selectedRegion) return;
+  const lbl = REGION_LABELS[selectedRegion][currentLang];
+  ['regionBadgeText1','regionBadgeText2'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = lbl;
+  });
+}
+
+function selectRegion(region){
+  selectedRegion = region;
+  // steps: 1 done, 2 active
+  document.getElementById('dot1').classList.remove('active');
+  document.getElementById('dot1').classList.add('done');
+  document.getElementById('line1').classList.add('done');
+  document.getElementById('dot2').classList.add('active');
+  document.getElementById('lbl1').classList.remove('active');
+  document.getElementById('lbl2').classList.add('active');
+
+  document.getElementById('step0').style.display = 'none';
+  document.getElementById('step1').style.display = 'block';
+  document.getElementById('step2').style.display = 'none';
+
+  updateRegionBadges();
+  applyRegion();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function goToRegion(){
+  // back to step 0
+  document.querySelectorAll('.detail-panel').forEach(p => p.classList.remove('visible'));
+  document.getElementById('step2').style.display = 'none';
+  document.getElementById('step1').style.display = 'none';
+  document.getElementById('step0').style.display = 'block';
+
+  // reset steps
+  ['dot1','dot2','dot3'].forEach(id => {
+    const d = document.getElementById(id);
+    d.classList.remove('done');
+    d.classList.remove('active');
+  });
+  document.getElementById('dot1').classList.add('active');
+  document.getElementById('line1').classList.remove('done');
+  document.getElementById('line2').classList.remove('done');
+  document.getElementById('lbl1').classList.add('active');
+  document.getElementById('lbl2').classList.remove('active');
+  document.getElementById('lbl3').classList.remove('active');
+  document.querySelectorAll('.service-card').forEach(c => c.classList.remove('selected'));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 
 // ─── LANGUAGE TOGGLE ───
 function toggleLang() {
@@ -1087,6 +1329,12 @@ function applyLang() {
   document.getElementById('s1Title').textContent = isEn ? 'What service do you need?' : 'ما الخدمة التي تحتاجها؟';
   document.getElementById('s1Sub').textContent = isEn ? 'Tap a service to view pricing' : 'اضغط على الخدمة لعرض الأسعار';
 
+  // Step 0 title/sub
+  const s0t = document.getElementById('s0Title');
+  const s0s = document.getElementById('s0Sub');
+  if (s0t) s0t.textContent = isEn ? 'Where will the shoot take place?' : 'أين سيتم التصوير؟';
+  if (s0s) s0s.textContent = isEn ? 'Pick the region to view its prices' : 'اختر المنطقة لعرض الأسعار الخاصة بها';
+
   // Service cards
   const cards = [
     ['ريلز','Reels'],['أفلام قصيرة','Short Films'],['إعلانات','Commercials'],
@@ -1096,6 +1344,10 @@ function applyLang() {
   document.querySelectorAll('.service-name-ar').forEach((el,i) => {
     el.textContent = isEn ? cards[i][1] : cards[i][0];
   });
+
+  // refresh region-dependent UI
+  updateRegionBadges();
+  applyRegion();
 }
 
 // ─── SHOW SERVICE ───
@@ -1103,12 +1355,12 @@ function showService(service) {
   currentPanel = service;
 
   // Update steps
-  document.getElementById('dot1').classList.remove('active');
-  document.getElementById('dot1').classList.add('done');
-  document.getElementById('line1').classList.add('done');
-  document.getElementById('dot2').classList.add('active');
-  document.getElementById('lbl1').classList.remove('active');
-  document.getElementById('lbl2').classList.add('active');
+  document.getElementById('dot2').classList.remove('active');
+  document.getElementById('dot2').classList.add('done');
+  document.getElementById('line2').classList.add('done');
+  document.getElementById('dot3').classList.add('active');
+  document.getElementById('lbl2').classList.remove('active');
+  document.getElementById('lbl3').classList.add('active');
 
   // Highlight card
   document.querySelectorAll('.service-card').forEach(c => c.classList.remove('selected'));
@@ -1125,6 +1377,7 @@ function showService(service) {
   setTimeout(() => {
     const panel = document.getElementById('panel-' + service);
     if (panel) panel.classList.add('visible');
+    applyRegion();
   }, 50);
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1139,13 +1392,13 @@ function goBack() {
     document.getElementById('step1').style.display = 'block';
   }, 200);
 
-  // Reset steps
-  document.getElementById('dot1').classList.add('active');
-  document.getElementById('dot1').classList.remove('done');
-  document.getElementById('line1').classList.remove('done');
-  document.getElementById('dot2').classList.remove('active');
-  document.getElementById('lbl1').classList.add('active');
-  document.getElementById('lbl2').classList.remove('active');
+  // Reset steps back to "service"
+  document.getElementById('dot3').classList.remove('active');
+  document.getElementById('line2').classList.remove('done');
+  document.getElementById('dot2').classList.remove('done');
+  document.getElementById('dot2').classList.add('active');
+  document.getElementById('lbl3').classList.remove('active');
+  document.getElementById('lbl2').classList.add('active');
   document.querySelectorAll('.service-card').forEach(c => c.classList.remove('selected'));
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
