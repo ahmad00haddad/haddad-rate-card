@@ -180,6 +180,77 @@ header {
 }
 .step-line.done { background: var(--gold); }
 
+/* ─── REGION SELECT (step 0) ─── */
+.region-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 22px;
+  max-width: 760px;
+  margin: 0 auto;
+}
+.region-card {
+  background: var(--dark2);
+  border: 1px solid #2a2f33;
+  padding: 48px 28px;
+  text-align: center;
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+  font-family: 'SFMada', sans-serif;
+  color: var(--text);
+}
+.region-card::before {
+  content:'';
+  position:absolute; top:0; left:0; right:0; height:3px;
+  background: var(--gold);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform .5s cubic-bezier(.4,0,.2,1);
+}
+.region-card:hover::before { transform: scaleX(1); }
+.region-card:hover {
+  background: var(--dark3);
+  border-color: var(--gold-border);
+  transform: translateY(-4px);
+}
+.region-icon { font-size: 42px; display:block; margin-bottom: 14px; }
+.region-name-ar {
+  font-family: 'Playfair Display', serif;
+  font-size: 26px; font-weight: 700;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+.region-name-en {
+  font-size: 12px; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--text-muted);
+  margin-bottom: 10px;
+}
+.region-desc { font-size: 13px; color: var(--text-soft); }
+
+/* region badge shown above service / pricing */
+.region-badge {
+  display:inline-flex; align-items:center; gap:10px;
+  background: var(--dark2);
+  border: 1px solid var(--gold-border);
+  padding: 8px 16px;
+  font-size: 13px;
+  color: var(--text-soft);
+  margin: 0 auto 24px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.region-badge:hover { background: var(--dark3); border-color: var(--gold); color: var(--gold); }
+.region-badge strong { color: var(--gold); font-weight: 700; }
+.region-badge-wrap { text-align:center; }
+
+@media (max-width: 640px) {
+  .region-grid { gap: 14px; }
+  .region-card { padding: 32px 16px; }
+  .region-icon { font-size: 34px; }
+  .region-name-ar { font-size: 22px; }
+}
+
 /* ─── MAIN CONTAINER ─── */
 .container {
   max-width: 860px;
@@ -504,24 +575,54 @@ body.en .wa-float { left: auto; right: 28px; }
   <div class="steps-bar">
     <div class="step-item">
       <div class="step-dot active" id="dot1">1</div>
-      <span class="step-label active" id="lbl1" data-ar="اختر الخدمة" data-en="Pick Service">اختر الخدمة</span>
+      <span class="step-label active" id="lbl1" data-ar="المنطقة" data-en="Region">المنطقة</span>
     </div>
     <div class="step-line" id="line1"></div>
     <div class="step-item">
       <div class="step-dot" id="dot2">2</div>
-      <span class="step-label" id="lbl2" data-ar="عرض الأسعار" data-en="View Pricing">عرض الأسعار</span>
+      <span class="step-label" id="lbl2" data-ar="الخدمة" data-en="Service">الخدمة</span>
     </div>
     <div class="step-line" id="line2"></div>
     <div class="step-item">
       <div class="step-dot" id="dot3">3</div>
-      <span class="step-label" id="lbl3" data-ar="تواصل" data-en="Contact">تواصل</span>
+      <span class="step-label" id="lbl3" data-ar="السعر" data-en="Pricing">السعر</span>
     </div>
   </div>
 </div>
 
 <div class="container">
 
-  <div id="step1">
+  <div id="step0">
+    <div class="section-title">
+      <h2 id="s0Title">أين سيتم التصوير؟</h2>
+      <p id="s0Sub">اختر المنطقة لعرض الأسعار الخاصة بها</p>
+    </div>
+    <div class="region-grid">
+      <div class="region-card" onclick="selectRegion('irbid')">
+        <span class="region-icon">📍</span>
+        <div class="region-name-ar" data-ar="إربد" data-en="Irbid">إربد</div>
+        <div class="region-name-en">Irbid</div>
+        <div class="region-desc" data-ar="شمال الأردن" data-en="Northern Jordan">شمال الأردن</div>
+      </div>
+      <div class="region-card" onclick="selectRegion('amman')">
+        <span class="region-icon">🏙️</span>
+        <div class="region-name-ar" data-ar="عمّان" data-en="Amman">عمّان</div>
+        <div class="region-name-en">Amman</div>
+        <div class="region-desc" data-ar="العاصمة" data-en="The Capital">العاصمة</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="step1" style="display:none;">
+    <div class="region-badge-wrap">
+      <div class="region-badge" onclick="goToRegion()">
+        <span>📍</span>
+        <span data-ar="المنطقة:" data-en="Region:">المنطقة:</span>
+        <strong id="regionBadgeText1">—</strong>
+        <span style="opacity:.6">·</span>
+        <span data-ar="تغيير" data-en="Change">تغيير</span>
+      </div>
+    </div>
     <div class="section-title">
       <h2 id="s1Title">ما الخدمة التي تحتاجها؟</h2>
       <p id="s1Sub">اضغط على الخدمة لعرض الأسعار</p>
@@ -619,6 +720,16 @@ body.en .wa-float { left: auto; right: 28px; }
       <span id="backArrow">→</span>
       <span id="backText">العودة لقائمة الخدمات</span>
     </button>
+
+    <div class="region-badge-wrap">
+      <div class="region-badge" onclick="goToRegion()">
+        <span>📍</span>
+        <span data-ar="المنطقة:" data-en="Region:">المنطقة:</span>
+        <strong id="regionBadgeText2">—</strong>
+        <span style="opacity:.6">·</span>
+        <span data-ar="تغيير" data-en="Change">تغيير</span>
+      </div>
+    </div>
 
     <div class="detail-panel" id="panel-reels">
       <div class="section-title">
