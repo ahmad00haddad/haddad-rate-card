@@ -1190,15 +1190,31 @@ const REGION_LABELS = {
 
 // detect a row's region from its data-ar / data-en attributes (stable across language)
 function rowRegion(row){
-  let s = '';
-  row.querySelectorAll('[data-ar]').forEach(e => {
-    s += ' ' + (e.getAttribute('data-ar')||'') + ' ' + (e.getAttribute('data-en')||'');
+  const priceCol = row.querySelector('.price-col');
+  // Row name (Arabic + English) — strongest signal
+  let nameText = '';
+  row.querySelectorAll('.row-name-ar, .row-name-en').forEach(e => {
+    nameText += ' ' + (e.getAttribute('data-ar')||'') + ' ' + (e.getAttribute('data-en')||'') + ' ' + e.textContent;
   });
-  const ir = /إربد|Irbid/i.test(s);
-  const am = /عمّان|عمان|Amman/i.test(s);
-  if (ir && am) return 'both';
-  if (ir) return 'irbid';
-  if (am) return 'amman';
+  const nameIr = /إربد|Irbid/i.test(nameText);
+  const nameAm = /عمّان|عمان|Amman/i.test(nameText);
+  if (nameIr && !nameAm) return 'irbid';
+  if (nameAm && !nameIr) return 'amman';
+  if (nameIr && nameAm) return 'both';
+
+  if (!priceCol) return 'all';
+  const label = (priceCol.querySelector('.price-label-sm')?.textContent || '') + ' ' +
+                (priceCol.querySelector('.price-unit-sm')?.textContent || '');
+  const note  = priceCol.querySelector('.price-note-sm')?.textContent || '';
+  const labelIr = /إربد|Irbid/i.test(label);
+  const labelAm = /عمّان|عمان|Amman/i.test(label);
+  const noteAm  = /عمّان|عمان|Amman/i.test(note);
+  const noteIr  = /إربد|Irbid/i.test(note);
+  if (labelIr && (labelAm || noteAm)) return 'both';
+  if (labelAm && (labelIr || noteIr)) return 'both';
+  if (labelIr) return 'irbid';
+  if (labelAm) return 'amman';
+  if (noteAm)  return 'both';
   return 'all';
 }
 
