@@ -8,6 +8,22 @@ const Input = z.object({
   description: z.string().max(2000).optional().nullable(),
 });
 
+// Simple in-memory rate limit: 10 requests / 60s per user.
+// Worker isolates are short-lived but this is enough to stop accidental loops
+// and casual abuse from a single admin session.
+const RATE_WINDOW_MS = 60_000;
+const RATE_MAX = 10;
+const rateBuckets = new Map<string, number[]>();
+function checkRate(userId: string) {
+  const now = Date.now();
+  const arr = (rateBuckets.get(userId) ?? []).filter((t) => now - t < RATE_WINDOW_MS);
+  if (arr.length >= RATE_MAX) {
+    throw new Error(`تجاوزت الحدّ (${RATE_MAX} طلب/دقيقة). انتظر قليلاً ثم حاول مجدداً.`);
+  }
+  arr.push(now);
+  rateBuckets.set(userId, arr);
+}
+
 export const estimateEquipmentPrice = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => Input.parse(d))
@@ -20,6 +36,8 @@ export const estimateEquipmentPrice = createServerFn({ method: "POST" })
       .eq("role", "admin")
       .maybeSingle();
     if (!role) throw new Error("Forbidden");
+
+    checkRate(context.userId);
 
     const key = process.env.LOVABLE_API_KEY;
     if (!key) throw new Error("Missing LOVABLE_API_KEY");

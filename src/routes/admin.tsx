@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session } from "@supabase/supabase-js";
 import { estimateEquipmentPrice } from "@/lib/equipment-ai.functions";
+import { normalizeAr } from "@/lib/ar-normalize";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "لوحة الإدارة — المعدات" }, { name: "robots", content: "noindex" }] }),
@@ -24,8 +25,6 @@ type Equipment = {
   description: string | null;
   category: string | null;
   original_price: number;
-  rental_percentage: number;
-  daily_rental_price: number;
   image_path: string | null;
   is_available: boolean;
 };
@@ -36,12 +35,18 @@ function AdminPage() {
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
+    let active = true;
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+      if (!active) return;
       setSession(s);
       if (!s) { setIsAdmin(false); setChecking(false); }
     });
-    supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    return () => sub.subscription.unsubscribe();
+    supabase.auth.getSession().then(({ data }) => {
+      if (!active) return;
+      setSession(data.session);
+      if (!data.session) { setIsAdmin(false); setChecking(false); }
+    });
+    return () => { active = false; sub.subscription.unsubscribe(); };
   }, []);
 
   useEffect(() => {
@@ -127,7 +132,7 @@ function NotAuthorized() {
 }
 
 function emptyForm(): Omit<Equipment, "id"> {
-  return { name: "", description: "", category: "", original_price: 0, rental_percentage: 0, daily_rental_price: 0, image_path: "", is_available: true };
+  return { name: "", description: "", category: "", original_price: 0, image_path: "", is_available: true };
 }
 
 function AdminPanel() {
@@ -155,7 +160,7 @@ function AdminPanel() {
   async function save(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
-    const payload = { ...form, original_price: Number(form.original_price), rental_percentage: 0, daily_rental_price: 0 };
+    const payload = { ...form, original_price: Number(form.original_price) };
     const { error } = editing
       ? await supabase.from("equipment").update(payload).eq("id", editing.id)
       : await supabase.from("equipment").insert(payload);
@@ -205,10 +210,10 @@ function AdminPanel() {
   const [cat, setCat] = useState("الكل");
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const q = normalizeAr(query);
     return (data ?? []).filter((it) => {
       if (cat !== "الكل" && it.category !== cat) return false;
-      if (q && !`${it.name} ${it.description ?? ""}`.toLowerCase().includes(q)) return false;
+      if (q && !normalizeAr(`${it.name} ${it.description ?? ""}`).includes(q)) return false;
       return true;
     });
   }, [data, query, cat]);
