@@ -38,6 +38,7 @@ function EquipmentPage() {
       const { data, error } = await supabase
         .from("equipment")
         .select("id,name,description,category,image_path,is_available")
+        .eq("is_available", true)
         .order("category")
         .order("id");
       if (error) throw error;
@@ -55,10 +56,10 @@ function EquipmentPage() {
 
   const filtered = useMemo(() => {
     if (!data) return [];
-    const q = query.trim().toLowerCase();
+    const q = normalizeAr(query);
     return data.filter((e) => {
       if (active !== "الكل" && e.category !== active) return false;
-      if (q && !(`${e.name} ${e.description ?? ""}`.toLowerCase().includes(q))) return false;
+      if (q && !normalizeAr(`${e.name} ${e.description ?? ""}`).includes(q)) return false;
       return true;
     });
   }, [data, active, query]);
@@ -109,6 +110,7 @@ function EquipmentPage() {
                     src={item.image_path}
                     alt={item.name}
                     loading="lazy"
+                    decoding="async"
                     style={{ width: "85%", height: "85%", objectFit: "contain" }}
                   />
                 ) : (
