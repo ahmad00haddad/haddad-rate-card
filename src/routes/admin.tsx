@@ -210,10 +210,10 @@ function AdminPanel() {
   const [cat, setCat] = useState("الكل");
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const q = normalizeAr(query);
     return (data ?? []).filter((it) => {
       if (cat !== "الكل" && it.category !== cat) return false;
-      if (q && !`${it.name} ${it.description ?? ""}`.toLowerCase().includes(q)) return false;
+      if (q && !normalizeAr(`${it.name} ${it.description ?? ""}`).includes(q)) return false;
       return true;
     });
   }, [data, query, cat]);
