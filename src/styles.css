@@ -150,3 +150,18 @@
   font-weight: normal;
   font-display: swap;
 }
+
+/* Admin panel responsive: stack columns under 900px */
+.admin-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 400px);
+  gap: 24px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .admin-grid { grid-template-columns: minmax(0, 1fr); }
+  .admin-grid > aside { position: static !important; }
+}
+@media (max-width: 640px) {
+  .admin-two-col { grid-template-columns: 1fr !important; }
+}

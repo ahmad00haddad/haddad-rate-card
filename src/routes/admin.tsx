@@ -233,13 +233,13 @@ function AdminPanel() {
         <StatCard label="القيمة الإجمالية" value={`${stats.totalValue.toLocaleString()} د.أ`} wide />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 400px)", gap: 24, alignItems: "start" }}>
+      <div className="admin-grid">
         <section>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, gap: 10, flexWrap: "wrap" }}>
             <h2 style={{ fontFamily: "'Playfair Display', serif", color: "#f0ece4", margin: 0, fontSize: 22 }}>المعدات ({filtered.length})</h2>
             <button onClick={startNew} style={btnGold}>+ إضافة معدّة</button>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 200px", gap: 10, marginBottom: 14 }}>
+          <div className="admin-two-col" style={{ display: "grid", gridTemplateColumns: "1fr 200px", gap: 10, marginBottom: 14 }}>
             <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="بحث..." style={input} />
             <select value={cat} onChange={(e) => setCat(e.target.value)} style={input}>
               {categories.map((c) => <option key={c} value={c} style={{ background: "#15171a" }}>{c}</option>)}

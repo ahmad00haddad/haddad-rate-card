@@ -77,16 +77,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Haddad Rate Card" },
-      { name: "description", content: "قائمة التسعيرات - اختر الخدمة المطلوبة واعرف السعر فوراً" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Haddad Rate Card" },
-      { property: "og:description", content: "قائمة التسعيرات - اختر الخدمة المطلوبة واعرف السعر فوراً" },
+      { title: "أحمد حداد — تسعيرات التصوير السينمائي · إربد وعمّان" },
+      { name: "description", content: "قائمة تسعيرات أحمد حداد: أفلام قصيرة، ريلز، إعلانات TVC، وثائقيات، إيفنتات، بودكاست ومونتاج — أسعار عمّان وإربد بشفافية." },
+      { name: "author", content: "Ahmad Haddad" },
+      { property: "og:site_name", content: "Ahmad Haddad Films" },
+      { property: "og:title", content: "أحمد حداد — تسعيرات التصوير السينمائي" },
+      { property: "og:description", content: "أسعار خدمات التصوير السينمائي في عمّان وإربد — أفلام، ريلز، إعلانات، وثائقيات، إيفنتات." },
+      { property: "og:locale", content: "ar_JO" },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "Haddad Rate Card" },
-      { name: "twitter:description", content: "قائمة التسعيرات - اختر الخدمة المطلوبة واعرف السعر فوراً" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "أحمد حداد — تسعيرات التصوير السينمائي" },
+      { name: "twitter:description", content: "أسعار خدمات التصوير السينمائي في عمّان وإربد." },
       { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/qGn2RbU2zGeX3QOBE2tDG7bEjFO2/social-images/social-1780153735268-Screenshot_2026-05-30_180846.webp" },
       { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/qGn2RbU2zGeX3QOBE2tDG7bEjFO2/social-images/social-1780153735268-Screenshot_2026-05-30_180846.webp" },
     ],
@@ -94,6 +95,29 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         rel: "stylesheet",
         href: appCss,
+      },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+    ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "LocalBusiness",
+          "@id": "https://haddad-rate-card.lovable.app/#business",
+          name: "Ahmad Haddad — Cinematic Filmmaker",
+          image: "https://storage.googleapis.com/gpt-engineer-file-uploads/qGn2RbU2zGeX3QOBE2tDG7bEjFO2/social-images/social-1780153735268-Screenshot_2026-05-30_180846.webp",
+          url: "https://haddad-rate-card.lovable.app",
+          telephone: "+962799256345",
+          priceRange: "JOD",
+          areaServed: [
+            { "@type": "City", name: "Irbid" },
+            { "@type": "City", name: "Amman" },
+          ],
+          address: { "@type": "PostalAddress", addressCountry: "JO", addressLocality: "Irbid" },
+          sameAs: ["https://wa.me/962799256345"],
+        }),
       },
     ],
   }),
@@ -105,7 +129,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="ar" dir="rtl">
       <head>
         <HeadContent />
       </head>
