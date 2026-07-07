@@ -9,10 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as QuoteRouteImport } from './routes/quote'
 import { Route as EquipmentRouteImport } from './routes/equipment'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 
+const QuoteRoute = QuoteRouteImport.update({
+  id: '/quote',
+  path: '/quote',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EquipmentRoute = EquipmentRouteImport.update({
   id: '/equipment',
   path: '/equipment',
@@ -33,34 +39,45 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/equipment': typeof EquipmentRoute
+  '/quote': typeof QuoteRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/equipment': typeof EquipmentRoute
+  '/quote': typeof QuoteRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/equipment': typeof EquipmentRoute
+  '/quote': typeof QuoteRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/equipment'
+  fullPaths: '/' | '/admin' | '/equipment' | '/quote'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/equipment'
-  id: '__root__' | '/' | '/admin' | '/equipment'
+  to: '/' | '/admin' | '/equipment' | '/quote'
+  id: '__root__' | '/' | '/admin' | '/equipment' | '/quote'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   EquipmentRoute: typeof EquipmentRoute
+  QuoteRoute: typeof QuoteRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/quote': {
+      id: '/quote'
+      path: '/quote'
+      fullPath: '/quote'
+      preLoaderRoute: typeof QuoteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/equipment': {
       id: '/equipment'
       path: '/equipment'
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   EquipmentRoute: EquipmentRoute,
+  QuoteRoute: QuoteRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
