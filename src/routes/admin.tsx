@@ -76,6 +76,7 @@ function Nav({ session, isAdmin }: { session: Session | null; isAdmin: boolean }
       <nav style={{ display: "flex", gap: 10, alignItems: "center" }}>
         <Link to="/" style={navBtn}>التسعيرات</Link>
         <Link to="/equipment" style={navBtn}>المعدات</Link>
+        <Link to="/leads" style={navBtn}>الطلبات</Link>
         {session && (
           <>
             {isAdmin && <span style={{ color: "#86efac", fontSize: 12 }}>● مدير</span>}

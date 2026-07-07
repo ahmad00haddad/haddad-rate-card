@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as QuoteRouteImport } from './routes/quote'
+import { Route as LeadsRouteImport } from './routes/leads'
 import { Route as EquipmentRouteImport } from './routes/equipment'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
@@ -17,6 +18,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const QuoteRoute = QuoteRouteImport.update({
   id: '/quote',
   path: '/quote',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LeadsRoute = LeadsRouteImport.update({
+  id: '/leads',
+  path: '/leads',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EquipmentRoute = EquipmentRouteImport.update({
@@ -39,12 +45,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/equipment': typeof EquipmentRoute
+  '/leads': typeof LeadsRoute
   '/quote': typeof QuoteRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/equipment': typeof EquipmentRoute
+  '/leads': typeof LeadsRoute
   '/quote': typeof QuoteRoute
 }
 export interface FileRoutesById {
@@ -52,20 +60,22 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/equipment': typeof EquipmentRoute
+  '/leads': typeof LeadsRoute
   '/quote': typeof QuoteRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/equipment' | '/quote'
+  fullPaths: '/' | '/admin' | '/equipment' | '/leads' | '/quote'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/equipment' | '/quote'
-  id: '__root__' | '/' | '/admin' | '/equipment' | '/quote'
+  to: '/' | '/admin' | '/equipment' | '/leads' | '/quote'
+  id: '__root__' | '/' | '/admin' | '/equipment' | '/leads' | '/quote'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   EquipmentRoute: typeof EquipmentRoute
+  LeadsRoute: typeof LeadsRoute
   QuoteRoute: typeof QuoteRoute
 }
 
@@ -76,6 +86,13 @@ declare module '@tanstack/react-router' {
       path: '/quote'
       fullPath: '/quote'
       preLoaderRoute: typeof QuoteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/leads': {
+      id: '/leads'
+      path: '/leads'
+      fullPath: '/leads'
+      preLoaderRoute: typeof LeadsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/equipment': {
@@ -106,6 +123,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   EquipmentRoute: EquipmentRoute,
+  LeadsRoute: LeadsRoute,
   QuoteRoute: QuoteRoute,
 }
 export const routeTree = rootRouteImport
