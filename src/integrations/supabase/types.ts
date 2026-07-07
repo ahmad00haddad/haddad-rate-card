@@ -53,6 +53,45 @@ export type Database = {
         }
         Relationships: []
       }
+      quote_requests: {
+        Row: {
+          created_at: string
+          email: string | null
+          event_date: string | null
+          id: string
+          message: string | null
+          name: string
+          phone: string
+          region: string | null
+          service: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          event_date?: string | null
+          id?: string
+          message?: string | null
+          name: string
+          phone: string
+          region?: string | null
+          service?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          event_date?: string | null
+          id?: string
+          message?: string | null
+          name?: string
+          phone?: string
+          region?: string | null
+          service?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
