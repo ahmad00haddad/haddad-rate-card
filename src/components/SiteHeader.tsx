@@ -27,6 +27,12 @@ export function SiteHeader() {
         </span>
       </Link>
       <nav style={{ display: "flex", gap: 14, alignItems: "center" }}>
+        <a
+          href="https://ahmadhaddad.lovable.app/"
+          style={{ ...navStyle, borderColor: "rgba(244,153,33,0.5)" }}
+        >
+          ← الموقع الرئيسي
+        </a>
         <Link to="/" style={navStyle}>التسعيرات</Link>
         <Link to="/equipment" style={navStyle}>المعدات</Link>
       </nav>
