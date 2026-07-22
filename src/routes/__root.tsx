@@ -11,6 +11,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { installGlobalTracker, trackEvent } from "../lib/analytics";
 
 function NotFoundComponent() {
   return (
@@ -143,6 +144,16 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
+
+  useEffect(() => {
+    installGlobalTracker();
+    trackEvent("page_view");
+    const unsub = router.subscribe("onResolved", () => {
+      trackEvent("page_view");
+    });
+    return () => { unsub(); };
+  }, [router]);
 
   return (
     <QueryClientProvider client={queryClient}>

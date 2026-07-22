@@ -1296,6 +1296,8 @@ function updateRegionBadges(){
 
 function selectRegion(region){
   selectedRegion = region;
+  try { window.top && window.top.__lvTrack && window.top.__lvTrack('region_select', region); } catch(_) {}
+  try { window.__lvTrack && window.__lvTrack('region_select', region); } catch(_) {}
   // steps: 1 done, 2 active
   document.getElementById('dot1').classList.remove('active');
   document.getElementById('dot1').classList.add('done');
@@ -1412,6 +1414,8 @@ function applyLang() {
 // ─── SHOW SERVICE ───
 function showService(service) {
   currentPanel = service;
+  try { window.top && window.top.__lvTrack && window.top.__lvTrack('service_select', service); } catch(_) {}
+  try { window.__lvTrack && window.__lvTrack('service_select', service); } catch(_) {}
 
   // Update steps
   document.getElementById('dot2').classList.remove('active');
