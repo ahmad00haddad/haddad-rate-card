@@ -1414,6 +1414,8 @@ function applyLang() {
 // ─── SHOW SERVICE ───
 function showService(service) {
   currentPanel = service;
+  try { window.top && window.top.__lvTrack && window.top.__lvTrack('service_select', service); } catch(_) {}
+  try { window.__lvTrack && window.__lvTrack('service_select', service); } catch(_) {}
 
   // Update steps
   document.getElementById('dot2').classList.remove('active');
