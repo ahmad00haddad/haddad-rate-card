@@ -234,6 +234,8 @@ function AdminPanel() {
         <StatCard label="القيمة الإجمالية" value={`${stats.totalValue.toLocaleString()} د.أ`} wide />
       </div>
 
+      <AnalyticsSection />
+
       <div className="admin-grid">
         <section>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, gap: 10, flexWrap: "wrap" }}>
