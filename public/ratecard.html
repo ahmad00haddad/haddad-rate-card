@@ -1296,6 +1296,8 @@ function updateRegionBadges(){
 
 function selectRegion(region){
   selectedRegion = region;
+  try { window.top && window.top.__lvTrack && window.top.__lvTrack('region_select', region); } catch(_) {}
+  try { window.__lvTrack && window.__lvTrack('region_select', region); } catch(_) {}
   // steps: 1 done, 2 active
   document.getElementById('dot1').classList.remove('active');
   document.getElementById('dot1').classList.add('done');
