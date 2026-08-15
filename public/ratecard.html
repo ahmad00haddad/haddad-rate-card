@@ -1270,7 +1270,7 @@ function applyRegion(){
         }
         if (priceNum) {
           priceNum.textContent = parsed.value;
-          priceNum.style.fontSize = '';
+          priceNum.style.fontSize = parsed.value.length > 4 ? '26px' : '';
         }
         if (priceUnit) priceUnit.textContent = parsed.perDay
           ? (currentLang === 'en' ? 'JOD / day' : 'JOD / يوم')
