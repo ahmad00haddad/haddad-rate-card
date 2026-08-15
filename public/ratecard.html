@@ -1229,9 +1229,9 @@ function rowRegion(row){
 // or "400 JOD/day · Amman". Parse it so we can swap the visible price for Amman users.
 function parseAmmanNote(noteText){
   if (!noteText) return null;
-  const m = noteText.match(/(\d+\+?)\s*JOD(\/day)?/i);
+  const m = noteText.match(/(\d+(?:\s*[–—-]\s*\d+)?\+?)\s*JOD(\/day)?/i);
   if (!m) return null;
-  return { value: m[1], perDay: !!m[2] };
+  return { value: m[1].replace(/\s+/g,''), perDay: !!m[2] };
 }
 
 function applyRegion(){
