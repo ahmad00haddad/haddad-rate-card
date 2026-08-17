@@ -1467,5 +1467,48 @@ function goBack() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 </script>
+<script>
+// ===== Live pricing from admin dashboard =====
+(function(){
+  var SB_URL = 'https://reffvanaxrdcwipflfuu.supabase.co';
+  var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJlZmZ2YW5heHJkY3dpcGZsZnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNDE1ODAsImV4cCI6MjA5NTcxNzU4MH0.z8G8p87yS6nzf40soyU00byCVD8ATdcxUb9KGe5YQfM';
+  function applyItem(it){
+    var row = document.querySelector('.pricing-row[data-price-key="' + it.item_key + '"]');
+    if (!row) return;
+    var col = row.querySelector('.price-col');
+    if (!col) return;
+    var num = col.querySelector('.price-num');
+    if (num && it.price_text) {
+      num.textContent = it.price_text;
+      num.style.fontSize = it.price_text.length > 4 ? '26px' : '';
+    }
+    var unit = col.querySelector('.price-unit-sm');
+    if (unit && it.unit_text) unit.textContent = it.unit_text;
+    var note = col.querySelector('.price-note-sm');
+    if (it.note_text) {
+      if (!note) {
+        note = document.createElement('div');
+        note.className = 'price-note-sm';
+        col.appendChild(note);
+      }
+      note.textContent = it.note_text;
+    } else if (note) {
+      note.remove();
+    }
+    // invalidate region snapshot so applyRegion re-reads updated markup
+    delete col.dataset.origStored;
+    delete col.dataset.origHtml;
+  }
+  fetch(SB_URL + '/rest/v1/pricing_items?select=item_key,price_text,unit_text,note_text', {
+    headers: { apikey: SB_KEY, Accept: 'application/json' }
+  })
+    .then(function(r){ return r.ok ? r.json() : []; })
+    .then(function(items){
+      (items || []).forEach(applyItem);
+      try { if (typeof applyRegion === 'function') applyRegion(); } catch(_) {}
+    })
+    .catch(function(){});
+})();
+</script>
 </body>
 </html>
