@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Session } from "@supabase/supabase-js";
 import { estimateEquipmentPrice } from "@/lib/equipment-ai.functions";
 import { normalizeAr } from "@/lib/ar-normalize";
+import PricingAdmin from "@/components/PricingAdmin";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "لوحة الإدارة — المعدات" }, { name: "robots", content: "noindex" }] }),
@@ -233,6 +234,8 @@ function AdminPanel() {
         <StatCard label="عدد الفئات" value={stats.categories} />
         <StatCard label="القيمة الإجمالية" value={`${stats.totalValue.toLocaleString()} د.أ`} wide />
       </div>
+
+      <PricingAdmin />
 
       <AnalyticsSection />
 
