@@ -83,6 +83,42 @@ export type Database = {
         }
         Relationships: []
       }
+      pricing_items: {
+        Row: {
+          created_at: string
+          id: string
+          item_key: string
+          label: string
+          note_text: string
+          price_text: string
+          sort_order: number
+          unit_text: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_key: string
+          label: string
+          note_text?: string
+          price_text?: string
+          sort_order?: number
+          unit_text?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_key?: string
+          label?: string
+          note_text?: string
+          price_text?: string
+          sort_order?: number
+          unit_text?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       quote_requests: {
         Row: {
           created_at: string
