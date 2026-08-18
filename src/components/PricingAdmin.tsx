@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { normalizeAr } from "@/lib/ar-normalize";
+import type { TablesUpdate } from "@/integrations/supabase/types";
 
 /** One editable row of the public rate card. */
 type PricingItem = {
@@ -164,17 +165,17 @@ export default function PricingAdmin() {
     setPreviewKey((k) => k + 1);
   }
 
-  function buildPatch(item: PricingItem) {
+  function buildPatch(item: PricingItem): TablesUpdate<"pricing_items"> | null {
     const draft = drafts[item.id];
     if (!draft) return null;
-    const patch: Record<string, string | boolean> = {};
+    const patch: TablesUpdate<"pricing_items"> = {};
     for (const field of EDITABLE_FIELDS) {
       const value = draft[field];
       if (typeof value === "string") patch[field] = value.trim();
     }
     if (typeof draft.is_hidden === "boolean") patch.is_hidden = draft.is_hidden;
     // Keep the legacy display label in sync with the Arabic name.
-    if (typeof patch.name_ar === "string" && patch.name_ar) patch.label = patch.name_ar;
+    if (patch.name_ar) patch.label = patch.name_ar;
     return Object.keys(patch).length ? patch : null;
   }
 
