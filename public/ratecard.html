@@ -1472,42 +1472,115 @@ function goBack() {
 (function(){
   var SB_URL = 'https://reffvanaxrdcwipflfuu.supabase.co';
   var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJlZmZ2YW5heHJkY3dpcGZsZnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNDE1ODAsImV4cCI6MjA5NTcxNzU4MH0.z8G8p87yS6nzf40soyU00byCVD8ATdcxUb9KGe5YQfM';
+  var SELECT = 'item_key,price_text,unit_text,note_text,name_ar,name_en,' +
+               'desc_ar,desc_en,tag_ar,tag_en,price_label_ar,price_label_en,is_hidden';
+
+  // Writes a bilingual value: keeps data-ar/data-en in sync so the language
+  // toggle (applyLang) never reverts an admin override back to the markup.
+  function setBilingual(el, ar, en){
+    if (!el) return;
+    var arText = (ar || '').trim();
+    var enText = (en || '').trim() || arText;
+    if (!arText) return;
+    el.setAttribute('data-ar', arText);
+    el.setAttribute('data-en', enText);
+    el.textContent = (typeof currentLang !== 'undefined' && currentLang === 'en') ? enText : arText;
+  }
+
   function applyItem(it){
     var row = document.querySelector('.pricing-row[data-price-key="' + it.item_key + '"]');
     if (!row) return;
+
+    // Hidden items disappear from the public card entirely.
+    if (it.is_hidden) { row.dataset.hidden = '1'; row.style.display = 'none'; return; }
+    delete row.dataset.hidden;
+
+    // ── row info (name / english name / description / tag) ──
+    setBilingual(row.querySelector('.row-name-ar'), it.name_ar, it.name_en);
+    var nameEn = row.querySelector('.row-name-en');
+    if (nameEn && (it.name_en || '').trim()) nameEn.textContent = it.name_en.trim();
+    setBilingual(row.querySelector('.row-desc'), it.desc_ar, it.desc_en);
+
+    var tag = row.querySelector('.tag');
+    var tagAr = (it.tag_ar || '').trim();
+    if (tagAr) {
+      if (!tag) {
+        tag = document.createElement('span');
+        tag.className = 'tag tag-gold';
+        var info = row.querySelector('.row-info');
+        if (info) info.appendChild(tag); else return;
+      }
+      setBilingual(tag, tagAr, it.tag_en);
+    } else if (tag) {
+      tag.remove();
+    }
+
+    // ── price column (label / price / unit / note) ──
     var col = row.querySelector('.price-col');
     if (!col) return;
+
+    setBilingual(col.querySelector('.price-label-sm'), it.price_label_ar, it.price_label_en);
+
     var num = col.querySelector('.price-num');
-    if (num && it.price_text) {
-      num.textContent = it.price_text;
-      num.style.fontSize = it.price_text.length > 4 ? '26px' : '';
+    var priceText = (it.price_text || '').trim();
+    if (num && priceText) {
+      num.textContent = priceText;
+      num.style.fontSize = priceText.length > 4 ? '26px' : '';
     }
+
     var unit = col.querySelector('.price-unit-sm');
-    if (unit && it.unit_text) unit.textContent = it.unit_text;
+    var unitText = (it.unit_text || '').trim();
+    if (unit && unitText) unit.textContent = unitText;
+
     var note = col.querySelector('.price-note-sm');
-    if (it.note_text) {
+    var noteText = (it.note_text || '').trim();
+    if (noteText) {
       if (!note) {
         note = document.createElement('div');
         note.className = 'price-note-sm';
         col.appendChild(note);
       }
-      note.textContent = it.note_text;
+      note.textContent = noteText;
     } else if (note) {
       note.remove();
     }
-    // invalidate region snapshot so applyRegion re-reads updated markup
+
+    // Region logic caches the original markup — drop the cache so the next
+    // applyRegion() run reads the freshly injected values.
     delete col.dataset.origStored;
     delete col.dataset.origHtml;
+    delete row.dataset.region;
   }
-  fetch(SB_URL + '/rest/v1/pricing_items?select=item_key,price_text,unit_text,note_text', {
-    headers: { apikey: SB_KEY, Accept: 'application/json' }
-  })
-    .then(function(r){ return r.ok ? r.json() : []; })
-    .then(function(items){
-      (items || []).forEach(applyItem);
-      try { if (typeof applyRegion === 'function') applyRegion(); } catch(_) {}
+
+  var inFlight = false;
+  function loadPricing(){
+    if (inFlight) return;
+    inFlight = true;
+    // cache:no-store + cache-buster: an edit in the dashboard must show up
+    // on the very next load, never from a stale HTTP cache entry.
+    fetch(SB_URL + '/rest/v1/pricing_items?select=' + SELECT + '&_=' + Date.now(), {
+      cache: 'no-store',
+      headers: { apikey: SB_KEY, Accept: 'application/json', 'Cache-Control': 'no-cache' }
     })
-    .catch(function(){});
+      .then(function(r){ return r.ok ? r.json() : []; })
+      .then(function(items){
+        (items || []).forEach(applyItem);
+        try { if (typeof applyRegion === 'function') applyRegion(); } catch(_) {}
+      })
+      .catch(function(){})
+      .then(function(){ inFlight = false; });
+  }
+
+  // Refresh triggers: first paint, returning to the tab, and an explicit
+  // message from the admin dashboard after a save.
+  loadPricing();
+  document.addEventListener('visibilitychange', function(){
+    if (!document.hidden) loadPricing();
+  });
+  window.addEventListener('focus', loadPricing);
+  window.addEventListener('message', function(e){
+    if (e && e.data && e.data.type === 'lv-pricing-refresh') loadPricing();
+  });
 })();
 </script>
 </body>
