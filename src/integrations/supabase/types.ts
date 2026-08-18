@@ -86,34 +86,64 @@ export type Database = {
       pricing_items: {
         Row: {
           created_at: string
+          desc_ar: string
+          desc_en: string
           id: string
+          is_hidden: boolean
           item_key: string
           label: string
+          name_ar: string
+          name_en: string
           note_text: string
+          price_label_ar: string
+          price_label_en: string
           price_text: string
+          section: string
           sort_order: number
+          tag_ar: string
+          tag_en: string
           unit_text: string
           updated_at: string
         }
         Insert: {
           created_at?: string
+          desc_ar?: string
+          desc_en?: string
           id?: string
+          is_hidden?: boolean
           item_key: string
           label: string
+          name_ar?: string
+          name_en?: string
           note_text?: string
+          price_label_ar?: string
+          price_label_en?: string
           price_text?: string
+          section?: string
           sort_order?: number
+          tag_ar?: string
+          tag_en?: string
           unit_text?: string
           updated_at?: string
         }
         Update: {
           created_at?: string
+          desc_ar?: string
+          desc_en?: string
           id?: string
+          is_hidden?: boolean
           item_key?: string
           label?: string
+          name_ar?: string
+          name_en?: string
           note_text?: string
+          price_label_ar?: string
+          price_label_en?: string
           price_text?: string
+          section?: string
           sort_order?: number
+          tag_ar?: string
+          tag_en?: string
           unit_text?: string
           updated_at?: string
         }
