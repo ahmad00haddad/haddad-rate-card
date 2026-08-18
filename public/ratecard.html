@@ -1561,7 +1561,8 @@ function goBack() {
     inFlight = true;
     // cache:no-store + cache-buster: an edit in the dashboard must show up
     // on the very next load, never from a stale HTTP cache entry.
-    fetch(SB_URL + '/rest/v1/pricing_items?select=' + SELECT + '&_=' + Date.now(), {
+    // PostgREST rejects unknown query params, so cache-busting is done with headers only.
+    fetch(SB_URL + '/rest/v1/pricing_items?select=' + SELECT + '&order=sort_order', {
       cache: 'no-store',
       headers: { apikey: SB_KEY, Accept: 'application/json', 'Cache-Control': 'no-cache' }
     })
