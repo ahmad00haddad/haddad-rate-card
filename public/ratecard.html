@@ -1237,6 +1237,8 @@ function parseAmmanNote(noteText){
 function applyRegion(){
   if (!selectedRegion) return;
   document.querySelectorAll('.pricing-row').forEach(row => {
+    // Items hidden from the admin dashboard stay hidden for every region.
+    if (row.dataset.hidden === '1') { row.style.display = 'none'; return; }
     if (!row.dataset.region) row.dataset.region = rowRegion(row);
     const region = row.dataset.region;
     const priceCol = row.querySelector('.price-col');
