@@ -279,6 +279,46 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_create_pricing_item: {
+        Args: { _item: Json }
+        Returns: {
+          created_at: string
+          currency: string
+          deleted_at: string | null
+          desc_ar: string
+          desc_en: string
+          id: string
+          is_featured: boolean
+          is_hidden: boolean
+          item_key: string
+          label: string
+          name_ar: string
+          name_en: string
+          note_ar: string
+          note_en: string
+          note_text: string
+          price_label_ar: string
+          price_label_en: string
+          price_max: number | null
+          price_min: number | null
+          price_text: string
+          region: string
+          section: string
+          sort_order: number
+          tag_ar: string
+          tag_en: string
+          unit_ar: string
+          unit_en: string
+          unit_text: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "pricing_items"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       admin_update_pricing_item: {
         Args: { _item_id: string; _patch: Json }
         Returns: {
