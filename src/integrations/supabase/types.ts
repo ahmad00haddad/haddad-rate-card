@@ -83,67 +83,135 @@ export type Database = {
         }
         Relationships: []
       }
+      pricing_audit_log: {
+        Row: {
+          action: string
+          changed_by: string
+          created_at: string
+          id: string
+          new_values: Json
+          old_values: Json | null
+          pricing_item_id: string
+        }
+        Insert: {
+          action?: string
+          changed_by: string
+          created_at?: string
+          id?: string
+          new_values: Json
+          old_values?: Json | null
+          pricing_item_id: string
+        }
+        Update: {
+          action?: string
+          changed_by?: string
+          created_at?: string
+          id?: string
+          new_values?: Json
+          old_values?: Json | null
+          pricing_item_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pricing_audit_log_pricing_item_id_fkey"
+            columns: ["pricing_item_id"]
+            isOneToOne: false
+            referencedRelation: "pricing_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pricing_items: {
         Row: {
           created_at: string
+          currency: string
+          deleted_at: string | null
           desc_ar: string
           desc_en: string
           id: string
+          is_featured: boolean
           is_hidden: boolean
           item_key: string
           label: string
           name_ar: string
           name_en: string
+          note_ar: string
+          note_en: string
           note_text: string
           price_label_ar: string
           price_label_en: string
+          price_max: number | null
+          price_min: number | null
           price_text: string
+          region: string
           section: string
           sort_order: number
           tag_ar: string
           tag_en: string
+          unit_ar: string
+          unit_en: string
           unit_text: string
           updated_at: string
         }
         Insert: {
           created_at?: string
+          currency?: string
+          deleted_at?: string | null
           desc_ar?: string
           desc_en?: string
           id?: string
+          is_featured?: boolean
           is_hidden?: boolean
           item_key: string
           label: string
           name_ar?: string
           name_en?: string
+          note_ar?: string
+          note_en?: string
           note_text?: string
           price_label_ar?: string
           price_label_en?: string
+          price_max?: number | null
+          price_min?: number | null
           price_text?: string
+          region?: string
           section?: string
           sort_order?: number
           tag_ar?: string
           tag_en?: string
+          unit_ar?: string
+          unit_en?: string
           unit_text?: string
           updated_at?: string
         }
         Update: {
           created_at?: string
+          currency?: string
+          deleted_at?: string | null
           desc_ar?: string
           desc_en?: string
           id?: string
+          is_featured?: boolean
           is_hidden?: boolean
           item_key?: string
           label?: string
           name_ar?: string
           name_en?: string
+          note_ar?: string
+          note_en?: string
           note_text?: string
           price_label_ar?: string
           price_label_en?: string
+          price_max?: number | null
+          price_min?: number | null
           price_text?: string
+          region?: string
           section?: string
           sort_order?: number
           tag_ar?: string
           tag_en?: string
+          unit_ar?: string
+          unit_en?: string
           unit_text?: string
           updated_at?: string
         }
@@ -211,6 +279,86 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_create_pricing_item: {
+        Args: { _item: Json }
+        Returns: {
+          created_at: string
+          currency: string
+          deleted_at: string | null
+          desc_ar: string
+          desc_en: string
+          id: string
+          is_featured: boolean
+          is_hidden: boolean
+          item_key: string
+          label: string
+          name_ar: string
+          name_en: string
+          note_ar: string
+          note_en: string
+          note_text: string
+          price_label_ar: string
+          price_label_en: string
+          price_max: number | null
+          price_min: number | null
+          price_text: string
+          region: string
+          section: string
+          sort_order: number
+          tag_ar: string
+          tag_en: string
+          unit_ar: string
+          unit_en: string
+          unit_text: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "pricing_items"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      admin_update_pricing_item: {
+        Args: { _item_id: string; _patch: Json }
+        Returns: {
+          created_at: string
+          currency: string
+          deleted_at: string | null
+          desc_ar: string
+          desc_en: string
+          id: string
+          is_featured: boolean
+          is_hidden: boolean
+          item_key: string
+          label: string
+          name_ar: string
+          name_en: string
+          note_ar: string
+          note_en: string
+          note_text: string
+          price_label_ar: string
+          price_label_en: string
+          price_max: number | null
+          price_min: number | null
+          price_text: string
+          region: string
+          section: string
+          sort_order: number
+          tag_ar: string
+          tag_en: string
+          unit_ar: string
+          unit_en: string
+          unit_text: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "pricing_items"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
