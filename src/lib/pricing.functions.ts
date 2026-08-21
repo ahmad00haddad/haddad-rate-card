@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Json } from "@/integrations/supabase/types";
 
 export const savePricingItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -11,7 +12,7 @@ export const savePricingItem = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: saved, error } = await context.supabase.rpc("admin_update_pricing_item", {
       _item_id: data.id,
-      _patch: data.patch,
+      _patch: data.patch as Json,
     });
     if (error) throw new Error(error.message);
     return saved;
@@ -22,7 +23,7 @@ export const createPricingItem = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ item: z.record(z.unknown()) }).parse(input))
   .handler(async ({ data, context }) => {
     const { data: created, error } = await context.supabase.rpc("admin_create_pricing_item", {
-      _item: data.item,
+      _item: data.item as Json,
     });
     if (error) throw new Error(error.message);
     return created;

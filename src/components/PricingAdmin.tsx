@@ -1,460 +1,211 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { normalizeAr } from "@/lib/ar-normalize";
-import type { TablesUpdate } from "@/integrations/supabase/types";
+import { useServerFn } from "@tanstack/react-start";
+import { Copy, Eye, EyeOff, History, Plus, RotateCcw, Save, Search, Trash2 } from "lucide-react";
+import { RateCardExperience } from "@/components/RateCardExperience";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { announcePricingUpdate, usePricingItems } from "@/hooks/use-pricing-items";
+import { createPricingItem, getPricingAuditLog, savePricingItem } from "@/lib/pricing.functions";
+import { pricingQueryKey, pricingSections, type PricingItem } from "@/lib/pricing";
 
-/** One editable row of the public rate card. */
-type PricingItem = {
-  id: string;
-  item_key: string;
-  label: string;
-  section: string;
-  name_ar: string;
-  name_en: string;
-  desc_ar: string;
-  desc_en: string;
-  tag_ar: string;
-  tag_en: string;
-  price_label_ar: string;
-  price_label_en: string;
-  price_text: string;
-  unit_text: string;
-  note_text: string;
-  is_hidden: boolean;
-  sort_order: number;
-};
+type Draft = Partial<PricingItem>;
+type AuditRow = Awaited<ReturnType<ReturnType<typeof useServerFn<typeof getPricingAuditLog>>>>[number];
 
-/** Fields the dashboard is allowed to write. */
-const EDITABLE_FIELDS = [
-  "name_ar",
-  "name_en",
-  "desc_ar",
-  "desc_en",
-  "tag_ar",
-  "tag_en",
-  "price_label_ar",
-  "price_label_en",
-  "price_text",
-  "unit_text",
-  "note_text",
-] as const;
-
-type EditableField = (typeof EDITABLE_FIELDS)[number];
-
-const SECTION_LABELS: Record<string, string> = {
-  reels: "📱 ريلز انستاجرام",
-  films: "🎬 أفلام قصيرة",
-  commercials: "📺 إعلانات",
-  docs: "🎥 وثائقيات",
-  events: "🎤 إيفنتات / بودكاست",
-  editing: "✂️ مونتاج وتلوين",
-  dayrate: "📅 اليومية",
-};
-
-const FIELD_LABELS: Record<EditableField, string> = {
-  name_ar: "اسم البند (عربي)",
-  name_en: "اسم البند (إنجليزي)",
-  desc_ar: "الوصف تحت الاسم (عربي)",
-  desc_en: "الوصف تحت الاسم (إنجليزي)",
-  tag_ar: "الشارة الذهبية (عربي)",
-  tag_en: "الشارة الذهبية (إنجليزي)",
-  price_label_ar: "التسمية فوق السعر (عربي)",
-  price_label_en: "التسمية فوق السعر (إنجليزي)",
-  price_text: "السعر / النطاق",
-  unit_text: "الوحدة (JOD / ريل …)",
-  note_text: "الملاحظة أسفل السعر",
-};
-
-const input = {
-  background: "#0a0b0d",
-  border: "1px solid rgba(244,153,33,0.25)",
-  color: "#f0ece4",
-  padding: "8px 10px",
-  borderRadius: 2,
-  fontSize: 13,
-  fontFamily: "inherit",
-  width: "100%",
-  boxSizing: "border-box" as const,
-};
-const btnGold = {
-  background: "#f49921",
-  color: "#0e0f11",
-  border: "none",
-  padding: "8px 16px",
-  fontWeight: 700,
-  cursor: "pointer",
-  borderRadius: 2,
-  fontSize: 13,
-} as const;
-const btnSm = {
-  background: "transparent",
-  border: "1px solid rgba(244,153,33,0.35)",
-  color: "#f49921",
-  padding: "6px 12px",
-  fontWeight: 600,
-  cursor: "pointer",
-  borderRadius: 2,
-  fontSize: 12,
-} as const;
-
-const labelStyle = {
-  display: "grid",
-  gap: 4,
-  fontSize: 11,
-  color: "#9b948a",
-} as const;
+const emptyItem = (): Record<string, unknown> => ({
+  section: "reels", region: "irbid", name_ar: "بند جديد", name_en: "New item",
+  desc_ar: "", desc_en: "", tag_ar: "", tag_en: "", price_label_ar: "السعر",
+  price_label_en: "Price", price_min: null, price_max: null, currency: "JOD",
+  unit_ar: "JOD", unit_en: "JOD", note_ar: "", note_en: "", sort_order: 999,
+  is_featured: false, is_hidden: false, price_text: "",
+});
 
 export default function PricingAdmin() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
+  const { data = [], isLoading, error } = usePricingItems(true);
+  const saveFn = useServerFn(savePricingItem);
+  const createFn = useServerFn(createPricingItem);
+  const auditFn = useServerFn(getPricingAuditLog);
+  const [drafts, setDrafts] = useState<Record<string, Draft>>({});
   const [query, setQuery] = useState("");
-  const [drafts, setDrafts] = useState<Record<string, Partial<PricingItem>>>({});
+  const [section, setSection] = useState("all");
+  const [region, setRegion] = useState("all");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [saving, setSaving] = useState<string | null>(null);
-  const [msg, setMsg] = useState("");
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  const [previewKey, setPreviewKey] = useState(0);
-  const previewRef = useRef<HTMLIFrameElement | null>(null);
+  const [status, setStatus] = useState<{ kind: "success" | "error" | "sync"; text: string } | null>(null);
+  const [previewRegion, setPreviewRegion] = useState<"irbid" | "amman">("irbid");
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["pricing_items"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("pricing_items")
-        .select("*")
-        .order("sort_order");
-      if (error) throw error;
-      return data as PricingItem[];
-    },
-  });
+  const filtered = useMemo(() => data.filter((item) => {
+    const needle = query.trim().toLocaleLowerCase("ar");
+    return (!needle || `${item.name_ar} ${item.name_en} ${item.desc_ar}`.toLocaleLowerCase("ar").includes(needle))
+      && (section === "all" || item.section === section)
+      && (region === "all" || item.region === region);
+  }), [data, query, region, section]);
+  const selected = data.find((item) => item.id === selectedId) ?? filtered[0] ?? null;
+  const selectedDraft = selected ? drafts[selected.id] ?? {} : {};
+  const current = selected ? { ...selected, ...selectedDraft } : null;
+  const dirtyIds = Object.keys(drafts);
 
-  /** Items filtered by the search box, grouped by rate-card section. */
-  const groups = useMemo(() => {
-    const q = normalizeAr(query.trim());
-    const filtered = (data ?? []).filter((i) => {
-      if (!q) return true;
-      const haystack = normalizeAr(`${i.name_ar} ${i.name_en} ${i.label} ${i.desc_ar}`);
-      return haystack.includes(q);
-    });
-    const map = new Map<string, PricingItem[]>();
-    for (const item of filtered) {
-      const key = item.section || "other";
-      const list = map.get(key);
-      if (list) list.push(item);
-      else map.set(key, [item]);
-    }
-    return [...map.entries()];
-  }, [data, query]);
-
-  const dirtyCount = Object.keys(drafts).length;
-
-  function setDraft(id: string, patch: Partial<PricingItem>) {
-    setDrafts((d) => ({ ...d, [id]: { ...d[id], ...patch } }));
+  function update(field: keyof PricingItem, value: unknown) {
+    if (!selected) return;
+    setDrafts((old) => ({ ...old, [selected.id]: { ...old[selected.id], [field]: value } }));
   }
 
   function discard(id: string) {
-    setDrafts((d) => {
-      const next = { ...d };
-      delete next[id];
-      return next;
-    });
+    setDrafts((old) => { const next = { ...old }; delete next[id]; return next; });
   }
 
-  /** Reload the embedded preview so the admin sees the change instantly. */
-  function refreshPreview() {
-    previewRef.current?.contentWindow?.postMessage({ type: "lv-pricing-refresh" }, "*");
-    setPreviewKey((k) => k + 1);
+  function syncLegacyFields(patch: Draft) {
+    const next: Record<string, unknown> = { ...patch };
+    if (typeof patch.name_ar === "string") next.label = patch.name_ar;
+    if ("unit_ar" in patch) next.unit_text = patch.unit_ar ?? "";
+    if ("note_ar" in patch) next.note_text = patch.note_ar ?? "";
+    const min = patch.price_min;
+    const max = patch.price_max;
+    if (min !== undefined || max !== undefined) next.price_text = min == null ? "" : max != null && Number(max) !== Number(min) ? `${min}–${max}` : String(min);
+    return next;
   }
 
-  function buildPatch(item: PricingItem): TablesUpdate<"pricing_items"> | null {
-    const draft = drafts[item.id];
-    if (!draft) return null;
-    const patch: TablesUpdate<"pricing_items"> = {};
-    for (const field of EDITABLE_FIELDS) {
-      const value = draft[field];
-      if (typeof value === "string") patch[field] = value.trim();
-    }
-    if (typeof draft.is_hidden === "boolean") patch.is_hidden = draft.is_hidden;
-    // Keep the legacy display label in sync with the Arabic name.
-    if (patch.name_ar) patch.label = patch.name_ar;
-    return Object.keys(patch).length ? patch : null;
+  async function persist(item: PricingItem, patch: Draft) {
+    const min = patch.price_min ?? item.price_min;
+    const max = patch.price_max ?? item.price_max;
+    if (min != null && max != null && Number(max) < Number(min)) throw new Error("الحد الأعلى يجب أن يكون أكبر من أو يساوي الحد الأدنى.");
+    return saveFn({ data: { id: item.id, patch: syncLegacyFields(patch) } });
   }
 
-  async function save(item: PricingItem) {
-    const patch = buildPatch(item);
+  async function saveOne(item: PricingItem) {
+    const patch = drafts[item.id];
     if (!patch) return;
-    setSaving(item.id);
-    setMsg("");
-    const { error } = await supabase.from("pricing_items").update(patch).eq("id", item.id);
-    setSaving(null);
-    if (error) {
-      setMsg("تعذّر الحفظ: " + error.message);
-      return;
-    }
-    discard(item.id);
-    setMsg("تم الحفظ ✓ التغيير ظاهر الآن في بطاقة الأسعار");
-    await qc.invalidateQueries({ queryKey: ["pricing_items"] });
-    refreshPreview();
+    setSaving(item.id); setStatus({ kind: "sync", text: "جارٍ الحفظ والنشر…" });
+    try {
+      await persist(item, patch);
+      discard(item.id);
+      await queryClient.invalidateQueries({ queryKey: pricingQueryKey });
+      announcePricingUpdate();
+      setStatus({ kind: "success", text: "محفوظ ومنشور فوراً على الصفحة الرئيسية." });
+    } catch (caught) {
+      setStatus({ kind: "error", text: caught instanceof Error ? caught.message : "تعذّر الحفظ." });
+    } finally { setSaving(null); }
   }
 
   async function saveAll() {
-    const targets = (data ?? []).filter((i) => drafts[i.id]);
-    if (!targets.length) return;
-    setSaving("all");
-    setMsg("");
-    for (const item of targets) {
-      const patch = buildPatch(item);
-      if (!patch) continue;
-      const { error } = await supabase.from("pricing_items").update(patch).eq("id", item.id);
-      if (error) {
-        setSaving(null);
-        setMsg(`تعذّر حفظ «${item.label}»: ${error.message}`);
-        return;
+    setSaving("all"); setStatus({ kind: "sync", text: `جارٍ نشر ${dirtyIds.length} تعديلات…` });
+    try {
+      for (const id of dirtyIds) {
+        const item = data.find((entry) => entry.id === id);
+        if (item) await persist(item, drafts[id] ?? {});
       }
-      discard(item.id);
-    }
-    setSaving(null);
-    setMsg(`تم حفظ ${targets.length} بند ✓`);
-    await qc.invalidateQueries({ queryKey: ["pricing_items"] });
-    refreshPreview();
+      setDrafts({});
+      await queryClient.invalidateQueries({ queryKey: pricingQueryKey });
+      announcePricingUpdate();
+      setStatus({ kind: "success", text: "تم حفظ ونشر جميع التعديلات." });
+    } catch (caught) {
+      setStatus({ kind: "error", text: caught instanceof Error ? caught.message : "تعذّر الحفظ الجماعي." });
+    } finally { setSaving(null); }
   }
 
-  async function toggleHidden(item: PricingItem) {
-    const next = !(drafts[item.id]?.is_hidden ?? item.is_hidden);
-    setSaving(item.id);
-    const { error } = await supabase
-      .from("pricing_items")
-      .update({ is_hidden: next })
-      .eq("id", item.id);
-    setSaving(null);
-    if (error) {
-      setMsg("تعذّر التحديث: " + error.message);
-      return;
-    }
-    setMsg(next ? "تم إخفاء البند من بطاقة الأسعار" : "تم إظهار البند في بطاقة الأسعار");
-    await qc.invalidateQueries({ queryKey: ["pricing_items"] });
-    refreshPreview();
+  async function createNew(source?: PricingItem) {
+    setSaving("create"); setStatus({ kind: "sync", text: "جارٍ إنشاء البند…" });
+    try {
+      const payload = source ? { ...source, item_key: `${source.item_key}_copy_${Date.now()}`, name_ar: `${source.name_ar} — نسخة`, name_en: `${source.name_en} — Copy` } : emptyItem();
+      const created = await createFn({ data: { item: payload } });
+      await queryClient.invalidateQueries({ queryKey: pricingQueryKey });
+      announcePricingUpdate();
+      setSelectedId(created.id);
+      setStatus({ kind: "success", text: "تم إنشاء البند. يمكنك تعديل تفاصيله الآن." });
+    } catch (caught) { setStatus({ kind: "error", text: caught instanceof Error ? caught.message : "تعذّر الإنشاء." }); }
+    finally { setSaving(null); }
+  }
+
+  async function setVisibility(item: PricingItem, hidden: boolean) {
+    setDrafts((old) => ({ ...old, [item.id]: { ...old[item.id], is_hidden: hidden } }));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    setSaving(item.id); setStatus({ kind: "sync", text: hidden ? "جارٍ إخفاء البند…" : "جارٍ نشر البند…" });
+    try {
+      await persist(item, { is_hidden: hidden });
+      discard(item.id);
+      await queryClient.invalidateQueries({ queryKey: pricingQueryKey });
+      announcePricingUpdate();
+      setStatus({ kind: "success", text: hidden ? "تم إخفاء البند فوراً." : "تم نشر البند فوراً." });
+    } catch (caught) { setStatus({ kind: "error", text: caught instanceof Error ? caught.message : "تعذّر التحديث." }); }
+    finally { setSaving(null); }
   }
 
   return (
-    <section
-      style={{
-        background: "#15171a",
-        border: "1px solid rgba(244,153,33,0.2)",
-        borderRadius: 12,
-        padding: 22,
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: 12,
-          flexWrap: "wrap",
-          marginBottom: 6,
-        }}
-      >
-        <h2
-          style={{
-            fontFamily: "'Playfair Display', serif",
-            color: "#f0ece4",
-            margin: 0,
-            fontSize: 22,
-          }}
-        >
-          إدارة الأسعار
-        </h2>
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="بحث في البنود…"
-          style={{ ...input, maxWidth: 260 }}
-        />
+    <section className="pricing-admin">
+      <div className="pricing-admin__head">
+        <div><span>نظام النشر المباشر</span><h2>إدارة الأسعار والخدمات</h2><p>كل حقل هنا يرسم مباشرة في الصفحة الرئيسية من المصدر نفسه.</p></div>
+        <div className="pricing-admin__head-actions">
+          <Button variant="outline" onClick={() => void createNew()} disabled={saving === "create"}><Plus />بند جديد</Button>
+          <Button onClick={() => void saveAll()} disabled={!dirtyIds.length || saving !== null}><Save />حفظ الكل ({dirtyIds.length})</Button>
+        </div>
       </div>
-      <p style={{ color: "#9b948a", fontSize: 12, margin: "0 0 16px" }}>
-        اكتب السعر رقماً واحداً (مثال: 250) أو نطاقاً (مثال: 150–200). كل النصوص الظاهرة
-        في بطاقة الأسعار — الاسم والوصف والشارة والملاحظة — قابلة للتعديل من هنا، وأي حفظ
-        يظهر فوراً للزوار.
-      </p>
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
-        <button
-          style={{ ...btnGold, opacity: dirtyCount ? 1 : 0.4 }}
-          disabled={!dirtyCount || saving === "all"}
-          onClick={saveAll}
-        >
-          {saving === "all" ? "جارٍ الحفظ…" : `حفظ كل التعديلات (${dirtyCount})`}
-        </button>
-        <button style={btnSm} onClick={refreshPreview}>
-          تحديث المعاينة
-        </button>
-      </div>
-      {msg && (
-        <p style={{ color: msg.startsWith("تم") ? "#3ddc97" : "#ef6c6c", fontSize: 13 }}>{msg}</p>
-      )}
-      {isLoading && <p style={{ color: "#9b948a" }}>تحميل…</p>}
+      {status && <div className={`pricing-admin__status is-${status.kind}`}>{status.text}</div>}
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-        {groups.map(([section, sectionItems]) => (
-          <div key={section} style={{ display: "grid", gap: 10 }}>
-            <h3
-              style={{
-                color: "#f49921",
-                fontSize: 14,
-                margin: 0,
-                borderBottom: "1px solid rgba(244,153,33,0.18)",
-                paddingBottom: 6,
-              }}
-            >
-              {SECTION_LABELS[section] ?? section}
-            </h3>
-            {sectionItems.map((it) => {
-              const d = drafts[it.id] ?? {};
-              const dirty = Object.keys(d).length > 0;
-              const open = expanded[it.id] ?? false;
-              const hidden = d.is_hidden ?? it.is_hidden;
-              return (
-                <div
-                  key={it.id}
-                  style={{
-                    background: "#0e0f11",
-                    border: `1px solid ${dirty ? "rgba(244,153,33,0.5)" : "rgba(244,153,33,0.12)"}`,
-                    borderRadius: 8,
-                    padding: 12,
-                    display: "grid",
-                    gap: 8,
-                    opacity: hidden ? 0.55 : 1,
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: 8,
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      flexWrap: "wrap",
-                    }}
-                  >
-                    <strong style={{ color: "#f0ece4", fontSize: 14 }}>
-                      {d.name_ar ?? it.name_ar ?? it.label}
-                      {hidden && (
-                        <span style={{ color: "#9b948a", fontSize: 11 }}> · مخفي</span>
-                      )}
-                    </strong>
-                    <div style={{ display: "flex", gap: 8 }}>
-                      <button style={btnSm} onClick={() => toggleHidden(it)}>
-                        {hidden ? "إظهار" : "إخفاء"}
-                      </button>
-                      <button
-                        style={btnSm}
-                        onClick={() => setExpanded((e) => ({ ...e, [it.id]: !open }))}
-                      >
-                        {open ? "إخفاء التفاصيل" : "تعديل كل النصوص"}
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Always-visible essentials: price, unit, note */}
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-                      gap: 8,
-                    }}
-                  >
-                    {(["price_text", "unit_text", "note_text"] as EditableField[]).map((f) => (
-                      <label key={f} style={labelStyle}>
-                        {FIELD_LABELS[f]}
-                        <input
-                          value={d[f] ?? it[f]}
-                          onChange={(e) => setDraft(it.id, { [f]: e.target.value })}
-                          style={input}
-                        />
-                      </label>
-                    ))}
-                  </div>
-
-                  {/* Full text editing */}
-                  {open && (
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-                        gap: 8,
-                        borderTop: "1px dashed rgba(244,153,33,0.18)",
-                        paddingTop: 10,
-                      }}
-                    >
-                      {(
-                        [
-                          "name_ar",
-                          "name_en",
-                          "price_label_ar",
-                          "price_label_en",
-                          "tag_ar",
-                          "tag_en",
-                        ] as EditableField[]
-                      ).map((f) => (
-                        <label key={f} style={labelStyle}>
-                          {FIELD_LABELS[f]}
-                          <input
-                            value={d[f] ?? it[f]}
-                            onChange={(e) => setDraft(it.id, { [f]: e.target.value })}
-                            style={input}
-                          />
-                        </label>
-                      ))}
-                      {(["desc_ar", "desc_en"] as EditableField[]).map((f) => (
-                        <label key={f} style={{ ...labelStyle, gridColumn: "1 / -1" }}>
-                          {FIELD_LABELS[f]}
-                          <textarea
-                            value={d[f] ?? it[f]}
-                            onChange={(e) => setDraft(it.id, { [f]: e.target.value })}
-                            rows={2}
-                            style={{ ...input, resize: "vertical" }}
-                          />
-                        </label>
-                      ))}
-                    </div>
-                  )}
-
-                  <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-                    {dirty && (
-                      <button style={btnSm} onClick={() => discard(it.id)}>
-                        تراجع
-                      </button>
-                    )}
-                    <button
-                      style={{ ...btnGold, opacity: dirty ? 1 : 0.4 }}
-                      disabled={!dirty || saving === it.id}
-                      onClick={() => save(it)}
-                    >
-                      {saving === it.id ? "جارٍ الحفظ…" : "حفظ"}
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+      <Tabs defaultValue="editor" dir="rtl">
+        <TabsList className="pricing-admin__tabs">
+          <TabsTrigger value="editor">المحرر</TabsTrigger><TabsTrigger value="preview">المعاينة المباشرة</TabsTrigger><TabsTrigger value="history">سجل التغييرات</TabsTrigger>
+        </TabsList>
+        <TabsContent value="editor">
+          <div className="pricing-admin__filters">
+            <label><Search /><Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="بحث بالاسم أو الوصف…" /></label>
+            <select value={section} onChange={(event) => setSection(event.target.value)}><option value="all">كل الخدمات</option>{pricingSections.map((entry) => <option value={entry.key} key={entry.key}>{entry.ar}</option>)}</select>
+            <select value={region} onChange={(event) => setRegion(event.target.value)}><option value="all">كل المناطق</option><option value="irbid">إربد</option><option value="amman">عمّان</option><option value="both">المنطقتان</option></select>
           </div>
-        ))}
-      </div>
-
-      {/* Live preview of the public rate card */}
-      <div style={{ marginTop: 24 }}>
-        <h3 style={{ color: "#f49921", fontSize: 14, margin: "0 0 8px" }}>معاينة مباشرة</h3>
-        <iframe
-          key={previewKey}
-          ref={previewRef}
-          src="/ratecard.html"
-          title="معاينة بطاقة الأسعار"
-          style={{
-            width: "100%",
-            height: 460,
-            border: "1px solid rgba(244,153,33,0.2)",
-            borderRadius: 8,
-            background: "#0e0f11",
-          }}
-        />
-      </div>
+          {error && <p className="pricing-admin__error">تعذّر تحميل البنود: {error.message}</p>}
+          <div className="pricing-admin__workspace">
+            <aside className="pricing-admin__list">
+              {isLoading && <p>جارٍ التحميل…</p>}
+              {filtered.map((item) => <button className={`${selected?.id === item.id ? "is-selected" : ""} ${item.is_hidden ? "is-hidden" : ""}`} key={item.id} onClick={() => setSelectedId(item.id)}><span>{pricingSections.find((entry) => entry.key === item.section)?.icon}</span><div><strong>{drafts[item.id]?.name_ar ?? item.name_ar}</strong><small>{item.region === "irbid" ? "إربد" : item.region === "amman" ? "عمّان" : "المنطقتان"} · {item.price_min == null ? item.price_text : `${item.price_min}${item.price_max != null ? `–${item.price_max}` : ""}`}</small></div>{drafts[item.id] && <i />}</button>)}
+            </aside>
+            {current ? <Editor item={current} original={selected} update={update} onSave={() => selected && void saveOne(selected)} onDiscard={() => selected && discard(selected.id)} onCopy={() => selected && void createNew(selected)} onVisibility={() => selected && void setVisibility(selected, !current.is_hidden)} saving={saving === selected?.id} dirty={Boolean(selected && drafts[selected.id])} /> : <div className="pricing-admin__empty">لا توجد بنود مطابقة.</div>}
+          </div>
+        </TabsContent>
+        <TabsContent value="preview">
+          <div className="pricing-admin__preview-toolbar"><strong>المعاينة تستخدم مكوّن الصفحة الرئيسية نفسه</strong><div><Button size="sm" variant={previewRegion === "irbid" ? "default" : "outline"} onClick={() => setPreviewRegion("irbid")}>إربد</Button><Button size="sm" variant={previewRegion === "amman" ? "default" : "outline"} onClick={() => setPreviewRegion("amman")}>عمّان</Button></div></div>
+          <div className="pricing-admin__preview"><RateCardExperience compact initialRegion={previewRegion} items={data.filter((item) => !item.is_hidden && !item.deleted_at)} key={previewRegion} /></div>
+        </TabsContent>
+        <TabsContent value="history"><AuditLog queryFn={auditFn} /></TabsContent>
+      </Tabs>
     </section>
   );
+}
+
+function Editor({ item, original, update, onSave, onDiscard, onCopy, onVisibility, saving, dirty }: { item: PricingItem; original: PricingItem | null; update: (field: keyof PricingItem, value: unknown) => void; onSave: () => void; onDiscard: () => void; onCopy: () => void; onVisibility: () => void; saving: boolean; dirty: boolean }) {
+  const numberValue = (value: number | null) => value == null ? "" : String(value);
+  return <div className="pricing-editor">
+    <div className="pricing-editor__title"><div><span>{item.item_key}</span><h3>{item.name_ar || "بند دون اسم"}</h3></div><div><Button size="icon" variant="outline" title="نسخ البند" onClick={onCopy}><Copy /></Button><Button size="icon" variant="outline" title={item.is_hidden ? "إظهار" : "إخفاء"} onClick={onVisibility}>{item.is_hidden ? <Eye /> : <EyeOff />}</Button></div></div>
+    <div className="pricing-editor__grid">
+      <Field label="المنطقة"><select value={item.region} onChange={(event) => update("region", event.target.value)}><option value="irbid">إربد</option><option value="amman">عمّان</option><option value="both">المنطقتان</option></select></Field>
+      <Field label="القسم"><select value={item.section} onChange={(event) => update("section", event.target.value)}>{pricingSections.map((entry) => <option value={entry.key} key={entry.key}>{entry.ar}</option>)}</select></Field>
+      <Field label="الترتيب"><Input type="number" value={item.sort_order} onChange={(event) => update("sort_order", Number(event.target.value))} /></Field>
+      <Field label="العملة"><select value={item.currency} onChange={(event) => update("currency", event.target.value)}><option value="JOD">JOD</option><option value="USD">USD</option></select></Field>
+      <Field label="السعر الأدنى"><Input type="number" min="0" value={numberValue(item.price_min)} onChange={(event) => update("price_min", event.target.value === "" ? null : Number(event.target.value))} /></Field>
+      <Field label="السعر الأعلى (اختياري)"><Input type="number" min="0" value={numberValue(item.price_max)} onChange={(event) => update("price_max", event.target.value === "" ? null : Number(event.target.value))} /></Field>
+      <Field label="اسم البند — عربي"><Input value={item.name_ar} onChange={(event) => update("name_ar", event.target.value)} /></Field>
+      <Field label="اسم البند — English"><Input dir="ltr" value={item.name_en} onChange={(event) => update("name_en", event.target.value)} /></Field>
+      <Field label="تسمية السعر — عربي"><Input value={item.price_label_ar} onChange={(event) => update("price_label_ar", event.target.value)} /></Field>
+      <Field label="Price label — English"><Input dir="ltr" value={item.price_label_en} onChange={(event) => update("price_label_en", event.target.value)} /></Field>
+      <Field label="الوحدة — عربي"><Input value={item.unit_ar} onChange={(event) => update("unit_ar", event.target.value)} /></Field>
+      <Field label="Unit — English"><Input dir="ltr" value={item.unit_en} onChange={(event) => update("unit_en", event.target.value)} /></Field>
+      <Field label="الوصف — عربي" wide><Textarea rows={3} value={item.desc_ar} onChange={(event) => update("desc_ar", event.target.value)} /></Field>
+      <Field label="Description — English" wide><Textarea dir="ltr" rows={3} value={item.desc_en} onChange={(event) => update("desc_en", event.target.value)} /></Field>
+      <Field label="الشارة — عربي"><Input value={item.tag_ar} onChange={(event) => update("tag_ar", event.target.value)} /></Field>
+      <Field label="Badge — English"><Input dir="ltr" value={item.tag_en} onChange={(event) => update("tag_en", event.target.value)} /></Field>
+      <Field label="الملاحظة أسفل السعر — عربي"><Input value={item.note_ar} onChange={(event) => update("note_ar", event.target.value)} /></Field>
+      <Field label="Note under price — English"><Input dir="ltr" value={item.note_en} onChange={(event) => update("note_en", event.target.value)} /></Field>
+    </div>
+    <div className="pricing-editor__toggles"><label><input type="checkbox" checked={item.is_featured} onChange={(event) => update("is_featured", event.target.checked)} /> تمييز البند بصرياً</label><label><input type="checkbox" checked={item.is_hidden} onChange={(event) => update("is_hidden", event.target.checked)} /> إخفاؤه عن الزوار</label></div>
+    <div className="pricing-editor__actions"><Button variant="outline" onClick={onDiscard} disabled={!dirty}><RotateCcw />تراجع</Button><Button onClick={onSave} disabled={!dirty || saving}><Save />{saving ? "جارٍ النشر…" : "حفظ ونشر"}</Button></div>
+  </div>;
+}
+
+function Field({ label, wide, children }: { label: string; wide?: boolean; children: React.ReactNode }) { return <label className={wide ? "is-wide" : ""}><span>{label}</span>{children}</label>; }
+
+function AuditLog({ queryFn }: { queryFn: () => Promise<AuditRow[]> }) {
+  const { data = [], isLoading } = useQuery({ queryKey: ["pricing-audit"], queryFn });
+  if (isLoading) return <div className="pricing-admin__empty">جارٍ تحميل سجل التغييرات…</div>;
+  return <div className="pricing-audit"><div className="pricing-audit__head"><History /><div><h3>سجل التغييرات</h3><p>آخر 100 عملية محفوظة في النظام.</p></div></div>{data.map((row) => { const values = row.new_values && typeof row.new_values === "object" && !Array.isArray(row.new_values) ? row.new_values as Record<string, unknown> : {}; return <article key={row.id}><span>{row.action === "create" ? "إنشاء" : row.action === "hide" ? "إخفاء" : row.action === "restore" ? "استرجاع" : "تعديل"}</span><div><strong>{String(values.name_ar ?? row.pricing_item_id)}</strong><small>{new Date(row.created_at).toLocaleString("ar-JO")}</small></div></article>; })}</div>;
 }

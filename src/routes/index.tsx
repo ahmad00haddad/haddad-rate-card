@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { RateCardExperience } from "@/components/RateCardExperience";
 import { usePricingItems } from "@/hooks/use-pricing-items";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -24,7 +25,7 @@ function Index() {
   }
 
   if (error) {
-    return <div className="ratecard-state"><h1>تعذّر تحميل الأسعار</h1><p>لم نعرض أسعاراً قديمة. تحقق من الاتصال وحاول مجدداً.</p><button onClick={() => void refetch()}>إعادة المحاولة</button></div>;
+    return <div className="ratecard-state"><h1>تعذّر تحميل الأسعار</h1><p>لم نعرض أسعاراً قديمة. تحقق من الاتصال وحاول مجدداً.</p><Button onClick={() => void refetch()}>إعادة المحاولة</Button></div>;
   }
 
   return (
