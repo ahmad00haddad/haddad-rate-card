@@ -1,4 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { RateCardExperience } from "@/components/RateCardExperience";
+import { usePricingItems } from "@/hooks/use-pricing-items";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -7,23 +10,25 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "قائمة تسعيرات أحمد حداد — تصوير سينمائي، ريلز، أفلام، إعلانات، وثائقيات، إيفنتات، مونتاج وتلوين." },
       { property: "og:title", content: "Ahmad Haddad — Cinematic Filmmaker" },
       { property: "og:description", content: "قائمة التسعيرات ومعرض المعدات" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Index,
 });
 
 function Index() {
+  const { data = [], isLoading, error, refetch } = usePricingItems();
+
+  if (isLoading) {
+    return <div className="ratecard-state"><span className="ratecard-state__spinner" /><p>جارٍ تحميل بطاقة الأسعار…</p></div>;
+  }
+
+  if (error) {
+    return <div className="ratecard-state"><h1>تعذّر تحميل الأسعار</h1><p>لم نعرض أسعاراً قديمة. تحقق من الاتصال وحاول مجدداً.</p><Button onClick={() => void refetch()}>إعادة المحاولة</Button></div>;
+  }
+
   return (
-    <iframe
-      src="/ratecard.html"
-      title="Rate Card"
-      style={{
-        position: "fixed",
-        inset: 0,
-        width: "100%",
-        height: "100%",
-        border: "none",
-      }}
-    />
+    <RateCardExperience items={data} />
   );
 }
