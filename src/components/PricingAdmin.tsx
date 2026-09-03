@@ -170,10 +170,7 @@ export default function PricingAdmin() {
 
   async function commitDelete(id: string) {
     try {
-      const { error } = await supabase.rpc("admin_update_pricing_item", {
-        _item_id: id,
-        _patch: { deleted_at: new Date().toISOString() }
-      });
+      const { error } = await supabase.from("pricing_items").update({ deleted_at: new Date().toISOString() }).eq("id", id);
       if (error) throw new Error(error.message);
       
       const nextDrafts = { ...drafts };
@@ -185,6 +182,8 @@ export default function PricingAdmin() {
     } catch (caught) {
       console.error(caught);
       setDeletedIds(prev => { const n = new Set(prev); n.delete(id); return n; });
+      setStatus({ kind: "error", text: "تعذّر الحذف. قد لا تملك صلاحية، أو حدث خطأ في الشبكة." });
+      setTimeout(() => setStatus(null), 4000);
     }
   }
 
