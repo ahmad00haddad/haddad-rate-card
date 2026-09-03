@@ -36,9 +36,12 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
 
   const rtl = language === "ar";
   
+  const [autoDetected, setAutoDetected] = useState(false);
+  
   // Auto-detect Jordan region
   useEffect(() => {
-    if (!initialRegion && !region) {
+    if (!initialRegion && !region && !autoDetected) {
+      setAutoDetected(true);
       try {
         const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
         if (tz === 'Asia/Amman') {
@@ -49,7 +52,7 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
         // ignore
       }
     }
-  }, [initialRegion, region]);
+  }, [initialRegion, region, autoDetected]);
 
   const visibleItems = useMemo(
     () => items.filter((item) => item.section === section && (item.region === region || item.region === "both") && !item.is_hidden),
