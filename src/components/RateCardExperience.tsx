@@ -1,10 +1,9 @@
-import { useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, MapPin, MessageCircle, Wrench } from "lucide-react";
+import { useMemo, useState, useEffect } from "react";
+import { ArrowLeft, ArrowRight, Check, MapPin, MessageCircle, Wrench, Lock, ShieldCheck } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { trackEvent } from "@/lib/analytics";
 import {
-  formatPricingAmount,
   pricingSections,
   regionLabel,
   type PricingItem,
@@ -16,6 +15,7 @@ type RateCardExperienceProps = {
   items: PricingItem[];
   compact?: boolean;
   initialRegion?: Exclude<PricingRegion, "both">;
+  isLoading?: boolean;
 };
 
 const policies = [
@@ -27,15 +27,34 @@ const policies = [
   { icon: "📍", ar: "خارج إربد", en: "Outside Irbid", value: "+", descAr: "رسوم تنقل حسب المسافة", descEn: "Travel fees by distance" },
 ];
 
-export function RateCardExperience({ items, compact = false, initialRegion }: RateCardExperienceProps) {
+export function RateCardExperience({ items, compact = false, initialRegion, isLoading = false }: RateCardExperienceProps) {
   const [language, setLanguage] = useState<PricingLanguage>("ar");
   const [region, setRegion] = useState<Exclude<PricingRegion, "both"> | null>(initialRegion ?? null);
   const [section, setSection] = useState<string | null>(null);
+  const [currency, setCurrency] = useState<"JOD" | "USD">("JOD");
+
   const rtl = language === "ar";
+  
+  // Auto-detect Jordan region
+  useEffect(() => {
+    if (!initialRegion && !region) {
+      try {
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        if (tz === 'Asia/Amman') {
+          // Default to Amman to save user click (progressive enhancement)
+          setRegion('amman');
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+  }, [initialRegion, region]);
+
   const visibleItems = useMemo(
-    () => items.filter((item) => item.section === section && (item.region === region || item.region === "both")),
+    () => items.filter((item) => item.section === section && (item.region === region || item.region === "both") && !item.is_hidden),
     [items, region, section],
   );
+
   const currentSection = pricingSections.find((entry) => entry.key === section);
 
   function chooseRegion(next: Exclude<PricingRegion, "both">) {
@@ -52,6 +71,21 @@ export function RateCardExperience({ items, compact = false, initialRegion }: Ra
   const step = !region ? 1 : !section ? 2 : 3;
   const text = <T,>(ar: T, en: T) => language === "ar" ? ar : en;
 
+  // Render Skeleton Loader if loading
+  if (isLoading) {
+    return (
+      <div className={`ratecard ${compact ? "ratecard--compact" : ""}`} dir={rtl ? "rtl" : "ltr"}>
+         <main className="ratecard__main" style={{ opacity: 0.5 }}>
+           <div className="animate-pulse flex flex-col gap-4">
+             <div className="h-10 bg-gray-800 rounded w-1/3 mb-8"></div>
+             <div className="h-32 bg-gray-800 rounded w-full"></div>
+             <div className="h-32 bg-gray-800 rounded w-full"></div>
+           </div>
+         </main>
+      </div>
+    );
+  }
+
   return (
     <div className={`ratecard ${compact ? "ratecard--compact" : ""}`} dir={rtl ? "rtl" : "ltr"}>
       <header className="ratecard__header">
@@ -62,8 +96,13 @@ export function RateCardExperience({ items, compact = false, initialRegion }: Ra
         <div className="ratecard__actions">
           {!compact && <a className="ratecard__text-link" href="https://ahmadhaddad.lovable.app/">{text("الموقع الرئيسي", "Portfolio")}</a>}
           {!compact && <Button asChild variant="outline" size="sm"><Link to="/equipment"><Wrench />{text("المعدات", "Equipment")}</Link></Button>}
+          
+          <div style={{ display: "flex", background: "rgba(255,255,255,0.05)", borderRadius: 6, overflow: "hidden", border: "1px solid rgba(255,255,255,0.1)" }}>
+            <button onClick={() => setCurrency("JOD")} style={{ padding: "4px 8px", fontSize: 11, fontWeight: currency === "JOD" ? "bold" : "normal", background: currency === "JOD" ? "#f49921" : "transparent", color: currency === "JOD" ? "#000" : "#fff" }}>JOD</button>
+            <button onClick={() => setCurrency("USD")} style={{ padding: "4px 8px", fontSize: 11, fontWeight: currency === "USD" ? "bold" : "normal", background: currency === "USD" ? "#f49921" : "transparent", color: currency === "USD" ? "#000" : "#fff" }}>USD</button>
+          </div>
+
           <Button variant="outline" size="sm" onClick={() => setLanguage(rtl ? "en" : "ar")}>{rtl ? "EN" : "عربي"}</Button>
-          {!compact && <Button asChild size="sm"><a href="https://wa.me/962799256345" target="_blank" rel="noreferrer"><MessageCircle />{text("تواصل معنا", "Contact")}</a></Button>}
         </div>
       </header>
 
@@ -71,10 +110,12 @@ export function RateCardExperience({ items, compact = false, initialRegion }: Ra
         <p className="ratecard__eyebrow">CINEMATIC FILMMAKER · JORDAN</p>
         <h1>{text("قائمة ", "Rate ")}<span>{text("التسعيرات", "Card")}</span></h1>
         <p>{text("اختر المنطقة والخدمة واعرف السعر فوراً", "Choose your region and service to view pricing")}</p>
-        <div className="ratecard__steps" aria-label={text("خطوات عرض السعر", "Pricing steps")}>
-          {[text("المنطقة", "Region"), text("الخدمة", "Service"), text("السعر", "Price")].map((label, index) => (
-            <div className={step >= index + 1 ? "is-active" : ""} key={String(label)}><span>{index + 1}</span><small>{label}</small></div>
-          ))}
+        
+        {/* Interactive Stepper */}
+        <div className="ratecard__steps" aria-label={text("خطوات عرض السعر", "Pricing steps")} style={{ cursor: "pointer" }}>
+          <div className={step >= 1 ? "is-active" : ""} onClick={() => { setRegion(null); setSection(null); }}><span>1</span><small>{text("المنطقة", "Region")}</small></div>
+          <div className={step >= 2 ? "is-active" : ""} onClick={() => { if (region) setSection(null); }}><span>2</span><small>{text("الخدمة", "Service")}</small></div>
+          <div className={step >= 3 ? "is-active" : ""}><span>3</span><small>{text("السعر", "Price")}</small></div>
         </div>
       </section>
 
@@ -93,9 +134,24 @@ export function RateCardExperience({ items, compact = false, initialRegion }: Ra
           <section className="ratecard__stage">
             <RegionButton region={region} language={language} onClick={() => setRegion(null)} />
             <div className="ratecard__section-title"><h2>{text("ما الخدمة التي تحتاجها؟", "Which service do you need?")}</h2><p>{text("اضغط على الخدمة لعرض الأسعار", "Select a service to view pricing")}</p></div>
-            <div className="ratecard__services">
+            
+            <div className="ratecard__services" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
               {pricingSections.map((entry) => (
-                <button key={entry.key} onClick={() => chooseSection(entry.key)}><span>{entry.icon}</span><strong>{text(entry.ar, entry.en)}</strong><small>{entry.en}</small></button>
+                <button 
+                  key={entry.key} 
+                  onClick={() => chooseSection(entry.key)}
+                  style={{
+                    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, padding: "32px 16px",
+                    background: "rgba(255,255,255,0.03)", border: "1px solid rgba(244,153,33,0.2)", borderRadius: 12, transition: "all 0.3s ease",
+                  }}
+                  className="hover:bg-[rgba(244,153,33,0.1)] hover:-translate-y-1"
+                >
+                  <span style={{ fontSize: 36 }}>{entry.icon}</span>
+                  <div style={{ textAlign: "center" }}>
+                    <strong style={{ display: "block", fontSize: 18, color: "#f0ece4" }}>{text(entry.ar, entry.en)}</strong>
+                    <small style={{ color: "#9b948a", fontSize: 13 }}>{entry.en}</small>
+                  </div>
+                </button>
               ))}
             </div>
             {!compact && <PolicyStrip language={language} />}
@@ -108,40 +164,49 @@ export function RateCardExperience({ items, compact = false, initialRegion }: Ra
               {rtl ? <ArrowRight /> : <ArrowLeft />}{text("العودة لقائمة الخدمات", "Back to services")}
             </button>
             <RegionButton region={region} language={language} onClick={() => { setRegion(null); setSection(null); }} />
-            <div className="ratecard__section-title"><h2>{currentSection?.icon} {text(currentSection?.ar ?? "", currentSection?.en ?? "")}</h2><p>{text("الأسعار التالية خاصة بالمنطقة المختارة", "Pricing for your selected region")}</p></div>
+            
+            <div className="ratecard__section-title" style={{ marginTop: 24 }}>
+              <h2>{currentSection?.icon} {text(currentSection?.ar ?? "", currentSection?.en ?? "")}</h2>
+              <p>{text("الأسعار التالية خاصة بالمنطقة المختارة", "Pricing for your selected region")}</p>
+            </div>
+            
             <div className="ratecard__pricing-list">
-              {visibleItems.map((item) => <PricingRow key={item.id} item={item} language={language} />)}
+              {visibleItems.map((item) => <PricingRow key={item.id} item={item} language={language} currency={currency} region={region} />)}
               {visibleItems.length === 0 && <div className="ratecard__empty">{text("لا توجد بنود منشورة لهذه الخدمة حالياً.", "No published items for this service yet.")}</div>}
             </div>
             
             {section === "reels" && (
-              <div style={{ 
-                marginTop: 16, 
-                padding: "12px 16px", 
-                background: "#15171a", 
-                border: "1px solid rgba(244,153,33,0.3)", 
-                borderRight: rtl ? "3px solid #f49921" : "1px solid rgba(244,153,33,0.3)",
-                borderLeft: !rtl ? "3px solid #f49921" : "1px solid rgba(244,153,33,0.3)",
-                borderRadius: 4, 
-                color: "#f0ece4", 
-                fontSize: 14,
-                display: "flex",
-                alignItems: "center",
-                gap: 8
-              }}>
+              <div style={{ marginTop: 16, padding: "12px 16px", background: "#15171a", border: "1px solid rgba(244,153,33,0.3)", borderRight: rtl ? "3px solid #f49921" : "1px solid rgba(244,153,33,0.3)", borderLeft: !rtl ? "3px solid #f49921" : "1px solid rgba(244,153,33,0.3)", borderRadius: 4, color: "#f0ece4", fontSize: 14, display: "flex", alignItems: "center", gap: 8 }}>
                 <span>✍️</span>
-                <div>
-                  <strong style={{ color: "#f49921", fontWeight: 700 }}>{text("كتابة السيناريو:", "Scriptwriting:")}</strong> {text("متاحة عبر كاتب خارجي متعاون — 50 إلى 100 JOD إضافية حسب المشروع.", "Available through an external collaborating writer — 50 to 100 JOD additional depending on the project.")}
-                </div>
+                <div><strong style={{ color: "#f49921", fontWeight: 700 }}>{text("كتابة السيناريو:", "Scriptwriting:")}</strong> {text("متاحة عبر كاتب خارجي متعاون — 50 إلى 100 JOD إضافية حسب المشروع.", "Available through an external collaborating writer — 50 to 100 JOD additional depending on the project.")}</div>
               </div>
             )}
 
-            <div className="ratecard__notice"><Check />{text("المعدات الأساسية مشمولة. السعر النهائي يعتمد على تفاصيل المشروع ويمكن التفاوض عليه.", "Core equipment is included. Final pricing depends on project details and can be negotiated.")}</div>
+            {/* Trust Signal */}
+            <div className="ratecard__notice" style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(61, 220, 151, 0.05)", border: "1px solid rgba(61, 220, 151, 0.2)", borderRadius: 8, padding: 16, marginTop: 24 }}>
+              <ShieldCheck color="#3ddc97" size={24} />
+              <div>
+                <strong style={{ color: "#3ddc97", display: "block" }}>{text("لا رسوم خفية", "No hidden fees")}</strong>
+                <span style={{ fontSize: 13 }}>{text("المعدات الأساسية مشمولة. السعر النهائي يعتمد على تفاصيل المشروع ويمكن التفاوض عليه.", "Core equipment is included. Final pricing depends on project details and can be negotiated.")}</span>
+              </div>
+            </div>
           </section>
         )}
       </main>
 
-      {!compact && <a className="ratecard__whatsapp" href="https://wa.me/962799256345" target="_blank" rel="noreferrer" aria-label={text("واتساب", "WhatsApp")}><MessageCircle /></a>}
+      {!compact && (
+        <a 
+          className="ratecard__whatsapp hover:scale-110 transition-transform" 
+          href="https://wa.me/962799256345" 
+          target="_blank" 
+          rel="noreferrer" 
+          aria-label={text("تواصل معنا عبر واتساب", "Contact us on WhatsApp")}
+          style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", width: "auto", borderRadius: 32 }}
+        >
+          <MessageCircle /> 
+          <span style={{ fontSize: 14, fontWeight: "bold" }}>{text("احصل على عرض سعر", "Get a quote")}</span>
+        </a>
+      )}
     </div>
   );
 }
@@ -150,21 +215,55 @@ function RegionButton({ region, language, onClick }: { region: Exclude<PricingRe
   return <button className="ratecard__region-pill" onClick={onClick}><MapPin /><span>{language === "ar" ? "المنطقة:" : "Region:"}</span><strong>{regionLabel(region, language)}</strong><small>{language === "ar" ? "تغيير" : "Change"}</small></button>;
 }
 
-function PricingRow({ item, language }: { item: PricingItem; language: PricingLanguage }) {
+function PricingRow({ item, language, currency, region }: { item: PricingItem; language: PricingLanguage, currency: "JOD" | "USD", region: Exclude<PricingRegion, "both"> }) {
   const ar = language === "ar";
   const unit = ar ? item.unit_ar : item.unit_en;
   const note = ar ? item.note_ar : item.note_en;
+  const title = ar ? item.name_ar : item.name_en;
+  
+  // Format price based on currency
+  const convert = (val: number | null) => val ? Math.round(val * 1.41) : null;
+  let formattedPrice = "";
+  
+  if (currency === "USD") {
+    const min = convert(item.price_min);
+    const max = convert(item.price_max);
+    if (min !== null || max !== null) {
+      formattedPrice = min == null ? "" : max != null && max !== min ? `${min}–${max}` : String(min);
+    }
+  } else {
+    formattedPrice = formatPricingAmount(item);
+  }
+
+  // WhatsApp Pre-filled message
+  const whatsappMsg = ar 
+    ? `مرحباً أحمد، مهتم بعرض (${title}) في (${regionLabel(region, 'ar')}).`
+    : `Hello Ahmad, I'm interested in the (${title}) package for (${regionLabel(region, 'en')}).`;
+  const whatsappUrl = `https://wa.me/962799256345?text=${encodeURIComponent(whatsappMsg)}`;
+
   return (
-    <article className={`ratecard__price-row ${item.is_featured ? "is-featured" : ""}`}>
+    <article className={`ratecard__price-row ${item.is_featured ? "is-featured" : ""}`} style={{ paddingBottom: 24 }}>
       <div className="ratecard__price-copy">
         {item.is_featured && (ar ? item.tag_ar : item.tag_en) && <span className="ratecard__tag">{ar ? item.tag_ar : item.tag_en}</span>}
-        <h3>{ar ? item.name_ar : item.name_en}</h3>
-        <p>{ar ? item.desc_ar : item.desc_en}</p>
+        <h3>{title}</h3>
+        
+        {/* Progressive Disclosure for long descriptions (using simple CSS line-clamp) */}
+        <p style={{ display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+          {ar ? item.desc_ar : item.desc_en}
+        </p>
+        
+        <Button asChild size="sm" variant="default" style={{ background: "#3ddc97", color: "#000", fontWeight: "bold", marginTop: 16, display: "inline-flex" }}>
+          <a href={whatsappUrl} target="_blank" rel="noreferrer">
+            <MessageCircle size={16} style={{ marginRight: ar ? 0 : 6, marginLeft: ar ? 6 : 0 }} /> 
+            {ar ? "احجز هذا العرض" : "Book this package"}
+          </a>
+        </Button>
       </div>
+      
       <div className="ratecard__price-value">
         <small>{ar ? item.price_label_ar : item.price_label_en}</small>
-        <strong>{formatPricingAmount(item)}</strong>
-        <span>{unit || item.currency}</span>
+        <strong>{formattedPrice}</strong>
+        <span>{currency === "USD" ? "USD" : (unit || item.currency)}</span>
         {note && <em>{note}</em>}
       </div>
     </article>

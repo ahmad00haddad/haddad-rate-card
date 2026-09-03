@@ -29,6 +29,6 @@ function Index() {
   }
 
   return (
-    <RateCardExperience items={data} />
+    <RateCardExperience items={data} isLoading={isLoading} />
   );
 }
