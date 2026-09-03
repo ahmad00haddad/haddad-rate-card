@@ -137,49 +137,6 @@ export default function PricingAdmin() {
     } finally { setSaving(null); }
   }
 
-  async function handleSyncMissing() {
-    if (!confirm("هل تريد توحيد البنود بين إربد وعمّان؟ سيتم نسخ أي بند موجود في منطقة وغير موجود في الأخرى.")) return;
-    setSaving("sync"); setStatus({ kind: "sync", text: "جارٍ المزامنة والنسخ…" });
-    
-    try {
-      const irbidItems = data.filter(i => i.region === 'irbid');
-      const ammanItems = data.filter(i => i.region === 'amman');
-      const toCreate = [];
-      
-      for (const item of irbidItems) {
-        if (!ammanItems.find(a => a.name_ar === item.name_ar && a.section === item.section)) {
-          const { id, created_at, updated_at, deleted_at, label, unit_text, note_text, region, item_key, ...rest } = item;
-          toCreate.push({ ...rest, region: 'amman', item_key: `${item_key}_amman_${Date.now()}` });
-        }
-      }
-      for (const item of ammanItems) {
-        if (!irbidItems.find(a => a.name_ar === item.name_ar && a.section === item.section)) {
-          const { id, created_at, updated_at, deleted_at, label, unit_text, note_text, region, item_key, ...rest } = item;
-          toCreate.push({ ...rest, region: 'irbid', item_key: `${item_key}_irbid_${Date.now()}` });
-        }
-      }
-      
-      if (toCreate.length === 0) {
-        setStatus({ kind: "success", text: "كل البنود متطابقة، لا يوجد شيء للنسخ." });
-        setTimeout(() => setStatus(null), 3000);
-        return;
-      }
-      
-      for (const payload of toCreate) {
-        await createFn({ data: { item: payload } });
-      }
-      
-      await queryClient.invalidateQueries({ queryKey: pricingQueryKey });
-      announcePricingUpdate();
-      setStatus({ kind: "success", text: `تم نسخ ${toCreate.length} بنود بنجاح.` });
-      setTimeout(() => setStatus(null), 4000);
-    } catch (caught) {
-      setStatus({ kind: "error", text: caught instanceof Error ? caught.message : "تعذّر المزامنة." });
-    } finally {
-      setSaving(null);
-    }
-  }
-
   const [isMobile, setIsMobile] = useState(false);
   const [mobileTab, setMobileTab] = useState<PricingRegion>("amman");
 
@@ -205,14 +162,6 @@ export default function PricingAdmin() {
               <button onClick={() => setMobileTab("irbid")} style={{ padding: "6px 16px", fontSize: 13, fontWeight: mobileTab === "irbid" ? "bold" : "normal", background: mobileTab === "irbid" ? "#f49921" : "transparent", color: mobileTab === "irbid" ? "#000" : "#fff", transition: "all 0.2s" }}>إربد</button>
             </div>
           )}
-          <Button
-            onClick={handleSyncMissing}
-            disabled={saving !== null || isLoading}
-            variant="outline"
-            style={{ borderColor: "rgba(244,153,33,0.5)", color: "#f49921" }}
-          >
-            مزامنة البنود المفقودة
-          </Button>
           <Button 
             onClick={saveAll} 
             disabled={!dirtyIds.length || saving !== null} 
