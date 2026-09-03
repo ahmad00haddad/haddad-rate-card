@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { announcePricingUpdate, usePricingItems } from "@/hooks/use-pricing-items";
 import { createPricingItem, getPricingAuditLog, savePricingItem } from "@/lib/pricing.functions";
 import { pricingQueryKey, pricingSections, type PricingItem } from "@/lib/pricing";
+import { useStickyScroll, useStickyState } from "@/hooks/use-sticky-state";
 
 type Draft = Partial<PricingItem>;
 type AuditRow = Awaited<ReturnType<ReturnType<typeof useServerFn<typeof getPricingAuditLog>>>>[number];
@@ -28,14 +29,17 @@ export default function PricingAdmin() {
   const saveFn = useServerFn(savePricingItem);
   const createFn = useServerFn(createPricingItem);
   const auditFn = useServerFn(getPricingAuditLog);
-  const [drafts, setDrafts] = useState<Record<string, Draft>>({});
-  const [query, setQuery] = useState("");
-  const [section, setSection] = useState("all");
-  const [region, setRegion] = useState("all");
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  useStickyScroll("pricing-admin");
+  const [drafts, setDrafts] = useStickyState<Record<string, Draft>>("pricing-drafts", {});
+  const [query, setQuery] = useStickyState("pricing-query", "");
+  const [section, setSection] = useStickyState("pricing-section", "all");
+  const [region, setRegion] = useStickyState("pricing-region", "all");
+  const [selectedId, setSelectedId] = useStickyState<string | null>("pricing-selected", null);
+  const [tab, setTab] = useStickyState("pricing-tab", "editor");
   const [saving, setSaving] = useState<string | null>(null);
   const [status, setStatus] = useState<{ kind: "success" | "error" | "sync"; text: string } | null>(null);
-  const [previewRegion, setPreviewRegion] = useState<"irbid" | "amman">("irbid");
+  const [previewRegion, setPreviewRegion] = useStickyState<"irbid" | "amman">("pricing-preview-region", "irbid");
+
 
   const filtered = useMemo(() => data.filter((item) => {
     const needle = query.trim().toLocaleLowerCase("ar");
@@ -50,11 +54,11 @@ export default function PricingAdmin() {
 
   function update(field: keyof PricingItem, value: unknown) {
     if (!selected) return;
-    setDrafts((old) => ({ ...old, [selected.id]: { ...old[selected.id], [field]: value } }));
+    setDrafts((old: Record<string, Draft>) => ({ ...old, [selected.id]: { ...old[selected.id], [field]: value } }));
   }
 
   function discard(id: string) {
-    setDrafts((old) => { const next = { ...old }; delete next[id]; return next; });
+    setDrafts((old: Record<string, Draft>) => { const next = { ...old }; delete next[id]; return next; });
   }
 
   function syncLegacyFields(patch: Draft) {
@@ -120,7 +124,7 @@ export default function PricingAdmin() {
   }
 
   async function setVisibility(item: PricingItem, hidden: boolean) {
-    setDrafts((old) => ({ ...old, [item.id]: { ...old[item.id], is_hidden: hidden } }));
+    setDrafts((old: Record<string, Draft>) => ({ ...old, [item.id]: { ...old[item.id], is_hidden: hidden } }));
     await new Promise((resolve) => setTimeout(resolve, 0));
     setSaving(item.id); setStatus({ kind: "sync", text: hidden ? "جارٍ إخفاء البند…" : "جارٍ نشر البند…" });
     try {
@@ -144,7 +148,7 @@ export default function PricingAdmin() {
       </div>
       {status && <div className={`pricing-admin__status is-${status.kind}`}>{status.text}</div>}
 
-      <Tabs defaultValue="editor" dir="rtl">
+      <Tabs value={tab} onValueChange={setTab} dir="rtl">
         <TabsList className="pricing-admin__tabs">
           <TabsTrigger value="editor">المحرر</TabsTrigger><TabsTrigger value="preview">المعاينة المباشرة</TabsTrigger><TabsTrigger value="history">سجل التغييرات</TabsTrigger>
         </TabsList>
