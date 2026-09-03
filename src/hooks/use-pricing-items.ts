@@ -8,8 +8,8 @@ export function usePricingItems(includeHidden = false) {
   const query = useQuery({
     queryKey: [...pricingQueryKey, includeHidden ? "admin" : "public"],
     queryFn: async () => {
-      let request = supabase.from("pricing_items").select("*").order("sort_order");
-      if (!includeHidden) request = request.eq("is_hidden", false).is("deleted_at", null);
+      let request = supabase.from("pricing_items").select("*").is("deleted_at", null).order("sort_order");
+      if (!includeHidden) request = request.eq("is_hidden", false);
       const { data, error } = await request;
       if (error) throw error;
       return data as PricingItem[];
