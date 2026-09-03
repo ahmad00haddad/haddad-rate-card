@@ -223,9 +223,14 @@ export default function PricingAdmin() {
 
   const [isMobile, setIsMobile] = useState(false);
   const [mobileTab, setMobileTab] = useState<PricingRegion>("amman");
+  const [viewMode, setViewMode] = useState<"single" | "split">("single");
 
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    const checkMobile = () => {
+      const isMob = window.innerWidth < 768;
+      setIsMobile(isMob);
+      if (isMob) setViewMode("single");
+    };
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
@@ -253,20 +258,24 @@ export default function PricingAdmin() {
           )}
         </div>
         <div className="pricing-admin__head-actions" style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <Button 
-            variant="outline"
-            onClick={() => setIsCompareOpen(true)}
-            style={{ borderColor: "#f49921", color: "#f49921" }}
-          >
-            <ArrowRightLeft size={16} style={{ marginLeft: 6 }} /> مقارنة المنطقتين
-          </Button>
-
-          {isMobile && (
+          
+          {viewMode === "single" && (
             <div style={{ display: "flex", background: "rgba(255,255,255,0.05)", borderRadius: 6, overflow: "hidden", border: "1px solid rgba(244,153,33,0.3)" }}>
               <button onClick={() => setMobileTab("amman")} style={{ padding: "6px 16px", fontSize: 13, fontWeight: mobileTab === "amman" ? "bold" : "normal", background: mobileTab === "amman" ? "#f49921" : "transparent", color: mobileTab === "amman" ? "#000" : "#fff", transition: "all 0.2s" }}>عمّان</button>
               <button onClick={() => setMobileTab("irbid")} style={{ padding: "6px 16px", fontSize: 13, fontWeight: mobileTab === "irbid" ? "bold" : "normal", background: mobileTab === "irbid" ? "#f49921" : "transparent", color: mobileTab === "irbid" ? "#000" : "#fff", transition: "all 0.2s" }}>إربد</button>
             </div>
           )}
+
+          {!isMobile && (
+            <Button 
+              variant="outline"
+              onClick={() => setViewMode(viewMode === "single" ? "split" : "single")}
+              style={{ borderColor: "#f49921", color: "#f49921" }}
+            >
+              <ArrowRightLeft size={16} style={{ marginLeft: 6 }} /> {viewMode === "single" ? "عرض جانبي (مقارنة)" : "عرض مفرد (شاشة كاملة)"}
+            </Button>
+          )}
+
           <Button 
             onClick={saveAll} 
             disabled={!dirtyIds.length || saving !== null} 
@@ -304,7 +313,7 @@ export default function PricingAdmin() {
       <div style={{ flex: 1, minHeight: 0, position: "relative" }}>
         {isLoading && <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(14,15,17,0.7)", zIndex: 100 }}>جارٍ التحميل…</div>}
         
-        {isMobile ? (
+        {viewMode === "single" ? (
           <div style={{ height: "100%" }}>
             <InlinePricingEditor
               region={mobileTab as Exclude<PricingRegion, "both">}
