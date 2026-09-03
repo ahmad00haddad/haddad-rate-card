@@ -60,7 +60,7 @@ function AdminPage() {
   return (
     <div dir="rtl" style={page}>
       <Nav session={session} isAdmin={!!isAdmin} />
-      <main style={{ maxWidth: 1280, margin: "0 auto", padding: "32px 24px 80px" }}>
+      <main style={{ width: "100%", maxWidth: 1800, margin: "0 auto", padding: "32px 24px 80px" }}>
         {!session ? <LoginCard /> : checking ? <p style={{ textAlign: "center", color: "#9b948a" }}>جاري التحقق…</p> : isAdmin ? <AdminPanel /> : <NotAuthorized />}
       </main>
     </div>
