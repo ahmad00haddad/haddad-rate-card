@@ -4,6 +4,7 @@ import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { trackEvent } from "@/lib/analytics";
 import {
+  formatPricingAmount,
   pricingSections,
   regionLabel,
   type PricingItem,
