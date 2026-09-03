@@ -732,7 +732,7 @@ function PolicyStrip({ language }: { language: PricingLanguage }) {
             <h2 style={{ margin: 0, fontSize: 18, color: '#f0ece4' }}>{ar ? "السياسات والشروط" : "Policies & terms"}</h2>
             <span style={{ color: "#f49921", fontSize: 13, padding: "4px 8px", background: "rgba(244,153,33,0.1)", borderRadius: 4 }}>{ar ? "إخفاء ↑" : "Hide ↑"}</span>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 16 }}>
             {policies.map((policy) => (
               <article key={policy.en} style={{ padding: 16, background: "rgba(255,255,255,0.03)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.05)" }}>
                 <span style={{ display: "block", fontSize: 24, marginBottom: 8 }}>{policy.icon}</span>
