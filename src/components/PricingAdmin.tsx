@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Save, Plus, Check } from "lucide-react";
@@ -145,15 +145,31 @@ export default function PricingAdmin() {
     } finally { setSaving(null); }
   }
 
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobileTab, setMobileTab] = useState<PricingRegion>("amman");
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   return (
     <section className="pricing-admin" style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 140px)" }}>
-      <div className="pricing-admin__head" style={{ marginBottom: 16 }}>
+      <div className="pricing-admin__head" style={{ marginBottom: 16, display: "flex", flexWrap: "wrap", gap: 16, justifyContent: "space-between" }}>
         <div>
-          <span>مقارنة وتعديل مباشر</span>
-          <h2>إدارة أسعار إربد وعمّان</h2>
-          <p>عدّل النصوص والأسعار مباشرة كما تظهر للزبون. كل جهة مفصولة تماماً.</p>
+          <span style={{ fontSize: 12, color: "#f49921", fontWeight: "bold" }}>مقارنة وتعديل مباشر</span>
+          <h2 style={{ fontSize: 24, margin: "4px 0" }}>إدارة أسعار إربد وعمّان</h2>
+          <p style={{ margin: 0, color: "#9b948a", fontSize: 14 }}>عدّل النصوص والأسعار مباشرة كما تظهر للزبون.</p>
         </div>
-        <div className="pricing-admin__head-actions">
+        <div className="pricing-admin__head-actions" style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          {isMobile && (
+            <div style={{ display: "flex", background: "rgba(255,255,255,0.05)", borderRadius: 6, overflow: "hidden", border: "1px solid rgba(244,153,33,0.3)" }}>
+              <button onClick={() => setMobileTab("amman")} style={{ padding: "6px 16px", fontSize: 13, fontWeight: mobileTab === "amman" ? "bold" : "normal", background: mobileTab === "amman" ? "#f49921" : "transparent", color: mobileTab === "amman" ? "#000" : "#fff", transition: "all 0.2s" }}>عمّان</button>
+              <button onClick={() => setMobileTab("irbid")} style={{ padding: "6px 16px", fontSize: 13, fontWeight: mobileTab === "irbid" ? "bold" : "normal", background: mobileTab === "irbid" ? "#f49921" : "transparent", color: mobileTab === "irbid" ? "#000" : "#fff", transition: "all 0.2s" }}>إربد</button>
+            </div>
+          )}
           <Button 
             onClick={saveAll} 
             disabled={!dirtyIds.length || saving !== null} 
@@ -191,39 +207,53 @@ export default function PricingAdmin() {
       <div style={{ flex: 1, minHeight: 0, position: "relative" }}>
         {isLoading && <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(14,15,17,0.7)", zIndex: 100 }}>جارٍ التحميل…</div>}
         
-        <ResizablePanelGroup direction="horizontal" style={{ height: "100%" }}>
-          <ResizablePanel defaultSize={50} minSize={30}>
-            <div style={{ height: "100%", paddingRight: 8 }}>
-              <InlinePricingEditor
-                region="irbid"
-                items={data}
-                drafts={drafts}
-                updateField={updateField}
-                onDelete={handleDelete}
-                onSplit={handleSplitBoth}
-                onCreateNew={handleCreateNew}
-              />
-            </div>
-          </ResizablePanel>
-          
-          <ResizableHandle style={{ width: 8, cursor: "col-resize", background: "transparent", position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <div style={{ width: 2, height: 40, background: "rgba(244,153,33,0.3)", borderRadius: 2 }} />
-          </ResizableHandle>
-          
-          <ResizablePanel defaultSize={50} minSize={30}>
-            <div style={{ height: "100%", paddingLeft: 8 }}>
-              <InlinePricingEditor
-                region="amman"
-                items={data}
-                drafts={drafts}
-                updateField={updateField}
-                onDelete={handleDelete}
-                onSplit={handleSplitBoth}
-                onCreateNew={handleCreateNew}
-              />
-            </div>
-          </ResizablePanel>
-        </ResizablePanelGroup>
+        {isMobile ? (
+          <div style={{ height: "100%" }}>
+            <InlinePricingEditor
+              region={mobileTab as Exclude<PricingRegion, "both">}
+              items={data}
+              drafts={drafts}
+              updateField={updateField}
+              onDelete={handleDelete}
+              onSplit={handleSplitBoth}
+              onCreateNew={handleCreateNew}
+            />
+          </div>
+        ) : (
+          <ResizablePanelGroup direction="horizontal" style={{ height: "100%" }}>
+            <ResizablePanel defaultSize={50} minSize={30}>
+              <div style={{ height: "100%", paddingRight: 8 }}>
+                <InlinePricingEditor
+                  region="irbid"
+                  items={data}
+                  drafts={drafts}
+                  updateField={updateField}
+                  onDelete={handleDelete}
+                  onSplit={handleSplitBoth}
+                  onCreateNew={handleCreateNew}
+                />
+              </div>
+            </ResizablePanel>
+            
+            <ResizableHandle style={{ width: 8, cursor: "col-resize", background: "transparent", position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ width: 2, height: 40, background: "rgba(244,153,33,0.3)", borderRadius: 2 }} />
+            </ResizableHandle>
+            
+            <ResizablePanel defaultSize={50} minSize={30}>
+              <div style={{ height: "100%", paddingLeft: 8 }}>
+                <InlinePricingEditor
+                  region="amman"
+                  items={data}
+                  drafts={drafts}
+                  updateField={updateField}
+                  onDelete={handleDelete}
+                  onSplit={handleSplitBoth}
+                  onCreateNew={handleCreateNew}
+                />
+              </div>
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        )}
       </div>
     </section>
   );
