@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { announcePricingUpdate, usePricingItems } from "@/hooks/use-pricing-items";
 import { createPricingItem, getPricingAuditLog, savePricingItem } from "@/lib/pricing.functions";
 import { pricingQueryKey, pricingSections, type PricingItem } from "@/lib/pricing";
+import { useStickyScroll, useStickyState } from "@/hooks/use-sticky-state";
 
 type Draft = Partial<PricingItem>;
 type AuditRow = Awaited<ReturnType<ReturnType<typeof useServerFn<typeof getPricingAuditLog>>>>[number];
@@ -53,11 +54,11 @@ export default function PricingAdmin() {
 
   function update(field: keyof PricingItem, value: unknown) {
     if (!selected) return;
-    setDrafts((old) => ({ ...old, [selected.id]: { ...old[selected.id], [field]: value } }));
+    setDrafts((old: Record<string, Draft>) => ({ ...old, [selected.id]: { ...old[selected.id], [field]: value } }));
   }
 
   function discard(id: string) {
-    setDrafts((old) => { const next = { ...old }; delete next[id]; return next; });
+    setDrafts((old: Record<string, Draft>) => { const next = { ...old }; delete next[id]; return next; });
   }
 
   function syncLegacyFields(patch: Draft) {
@@ -123,7 +124,7 @@ export default function PricingAdmin() {
   }
 
   async function setVisibility(item: PricingItem, hidden: boolean) {
-    setDrafts((old) => ({ ...old, [item.id]: { ...old[item.id], is_hidden: hidden } }));
+    setDrafts((old: Record<string, Draft>) => ({ ...old, [item.id]: { ...old[item.id], is_hidden: hidden } }));
     await new Promise((resolve) => setTimeout(resolve, 0));
     setSaving(item.id); setStatus({ kind: "sync", text: hidden ? "جارٍ إخفاء البند…" : "جارٍ نشر البند…" });
     try {
@@ -147,7 +148,7 @@ export default function PricingAdmin() {
       </div>
       {status && <div className={`pricing-admin__status is-${status.kind}`}>{status.text}</div>}
 
-      <Tabs defaultValue="editor" dir="rtl">
+      <Tabs value={tab} onValueChange={setTab} dir="rtl">
         <TabsList className="pricing-admin__tabs">
           <TabsTrigger value="editor">المحرر</TabsTrigger><TabsTrigger value="preview">المعاينة المباشرة</TabsTrigger><TabsTrigger value="history">سجل التغييرات</TabsTrigger>
         </TabsList>
