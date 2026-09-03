@@ -12,4 +12,21 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  vite: {
+    // Pre-bundle dependencies used by lazy/admin routes on initial startup.
+    // Without this list Vite discovers them after the first request, reloads
+    // the dev server, and aborts the in-flight SSR connection with ECONNRESET.
+    optimizeDeps: {
+      include: [
+        "@tanstack/history",
+        "@tanstack/router-core",
+        "@tanstack/router-core/isServer",
+        "@tanstack/router-core/ssr/client",
+        "@tanstack/router-core/ssr/server",
+        "h3-v2",
+        "react-resizable-panels",
+        "seroval",
+      ],
+    },
+  },
 });
