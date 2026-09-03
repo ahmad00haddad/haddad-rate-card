@@ -28,14 +28,17 @@ export default function PricingAdmin() {
   const saveFn = useServerFn(savePricingItem);
   const createFn = useServerFn(createPricingItem);
   const auditFn = useServerFn(getPricingAuditLog);
-  const [drafts, setDrafts] = useState<Record<string, Draft>>({});
-  const [query, setQuery] = useState("");
-  const [section, setSection] = useState("all");
-  const [region, setRegion] = useState("all");
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  useStickyScroll("pricing-admin");
+  const [drafts, setDrafts] = useStickyState<Record<string, Draft>>("pricing-drafts", {});
+  const [query, setQuery] = useStickyState("pricing-query", "");
+  const [section, setSection] = useStickyState("pricing-section", "all");
+  const [region, setRegion] = useStickyState("pricing-region", "all");
+  const [selectedId, setSelectedId] = useStickyState<string | null>("pricing-selected", null);
+  const [tab, setTab] = useStickyState("pricing-tab", "editor");
   const [saving, setSaving] = useState<string | null>(null);
   const [status, setStatus] = useState<{ kind: "success" | "error" | "sync"; text: string } | null>(null);
-  const [previewRegion, setPreviewRegion] = useState<"irbid" | "amman">("irbid");
+  const [previewRegion, setPreviewRegion] = useStickyState<"irbid" | "amman">("pricing-preview-region", "irbid");
+
 
   const filtered = useMemo(() => data.filter((item) => {
     const needle = query.trim().toLocaleLowerCase("ar");
