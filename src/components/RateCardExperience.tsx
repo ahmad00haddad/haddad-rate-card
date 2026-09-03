@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
-import { ArrowLeft, ArrowRight, Check, MapPin, MessageCircle, Wrench, Lock, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, MapPin, Wrench, Lock, ShieldCheck } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { trackEvent } from "@/lib/analytics";
