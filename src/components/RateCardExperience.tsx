@@ -643,35 +643,58 @@ function PricingRow({ item, language, currency, region, accent = '#f49921' }: { 
 
   return (
     <article 
-      className={`ratecard__price-row ${item.is_featured ? "is-featured" : ""}`} 
+      className={`ratecard__price-row group ${item.is_featured ? "is-featured" : ""}`} 
       style={{ 
         paddingBottom: 24,
+        paddingTop: 16,
         display: "flex",
         flexDirection: "column",
-        gap: 8,
+        gap: 16,
         borderLeft: !ar ? `3px solid rgba(${hexToRgb(accent)}, 0.3)` : "none",
         borderRight: ar ? `3px solid rgba(${hexToRgb(accent)}, 0.3)` : "none",
         paddingLeft: !ar ? 16 : 0,
         paddingRight: ar ? 16 : 0,
+        transition: "all 0.3s ease",
+        position: "relative",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", margin: 0, flexDirection: "row" }}>
-        <strong style={{ fontSize: 32, fontWeight: 800, color: accent }}><AnimatedNumber value={formattedPrice} /></strong>
-        <span style={{ fontSize: 16, color: accent, fontWeight: 600 }}>{currency === "USD" ? "USD" : (unit || item.currency)}</span>
-        <small style={{ color: "#9b948a", fontSize: 14 }}>{ar ? item.price_label_ar : item.price_label_en}</small>
-        {note && <em style={{ fontSize: 13, color: "#9b948a" }}>{note}</em>}
-        {item.is_featured && (ar ? item.tag_ar : item.tag_en) && (
-          <span style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 1, background: `rgba(${hexToRgb(accent)}, 0.1)`, color: accent, padding: "4px 8px", borderRadius: 4, marginLeft: ar ? 0 : 'auto', marginRight: ar ? 'auto' : 0 }}>
-            {ar ? item.tag_ar : item.tag_en}
-          </span>
-        )}
-      </div>
+      <div style={{ margin: 0, display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap" }}>
+        
+        {/* VALUE FIRST: Title and Description take precedence */}
+        <div style={{ flex: "1 1 300px" }}>
+          {item.is_featured && (ar ? item.tag_ar : item.tag_en) && (
+            <span style={{ display: "inline-block", fontSize: 11, textTransform: "uppercase", letterSpacing: 1, background: `rgba(${hexToRgb(accent)}, 0.1)`, color: accent, padding: "4px 8px", borderRadius: 4, marginBottom: 8 }}>
+              {ar ? item.tag_ar : item.tag_en}
+            </span>
+          )}
+          <h3 style={{ fontSize: 24, fontWeight: 800, color: "#f0ece4", margin: "0 0 8px 0", lineHeight: 1.3 }}>{title}</h3>
+          <p style={{ display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden", fontSize: 15, fontWeight: 400, color: "#9b948a", margin: 0, lineHeight: 1.6 }}>
+            {ar ? item.desc_ar : item.desc_en}
+          </p>
+        </div>
 
-      <div style={{ margin: 0 }}>
-        <h3 style={{ fontSize: 20, fontWeight: 700, color: "#f0ece4", margin: "0 0 4px 0" }}>{title}</h3>
-        <p style={{ display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden", fontSize: 14, fontWeight: 400, color: "#9b948a", margin: 0 }}>
-          {ar ? item.desc_ar : item.desc_en}
-        </p>
+        {/* PRICE SECOND: Muted until hovered/focused */}
+        <div 
+          className="opacity-40 grayscale group-hover:opacity-100 group-hover:grayscale-0 group-hover:scale-105"
+          style={{ 
+            display: "flex", 
+            flexDirection: "column", 
+            alignItems: ar ? "flex-end" : "flex-start", 
+            transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+            background: "rgba(255,255,255,0.03)",
+            padding: "16px 24px",
+            borderRadius: 12,
+            border: `1px solid rgba(${hexToRgb(accent)}, 0.2)`,
+            minWidth: 140
+          }}
+        >
+          <small style={{ color: "#9b948a", fontSize: 13, marginBottom: 4 }}>{ar ? item.price_label_ar : item.price_label_en}</small>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+            <strong style={{ fontSize: 28, fontWeight: 800, color: accent, lineHeight: 1 }}><AnimatedNumber value={formattedPrice} /></strong>
+            <span style={{ fontSize: 14, color: accent, fontWeight: 600 }}>{currency === "USD" ? "USD" : (unit || item.currency)}</span>
+          </div>
+          {note && <em style={{ fontSize: 12, color: "#9b948a", marginTop: 6, fontStyle: "normal" }}>{note}</em>}
+        </div>
       </div>
     </article>
   );
