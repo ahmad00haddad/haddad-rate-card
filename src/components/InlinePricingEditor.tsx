@@ -1,0 +1,606 @@
+import { useMemo, useState, useEffect, useRef } from "react";
+import { Check, MapPin, Plus, Trash2, SplitSquareHorizontal, Eye, EyeOff, GripVertical, PackageOpen, Info, AlertTriangle, Search, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  pricingSections,
+  regionLabel,
+  type PricingItem,
+  type PricingRegion,
+} from "@/lib/pricing";
+
+export type Draft = Partial<PricingItem>;
+
+type InlinePricingEditorProps = {
+  region: Exclude<PricingRegion, "both">;
+  items: PricingItem[];
+  drafts: Record<string, Draft>;
+  updateField: (id: string, field: keyof PricingItem, value: unknown) => void;
+  onDelete: (id: string) => void;
+  onSplit?: (item: PricingItem) => void;
+  onCreateNew: (section: string, region: PricingRegion) => void;
+};
+
+const DiffPreview = ({ oldVal, newVal }: { oldVal: any, newVal: any }) => {
+  if (newVal === undefined || newVal === oldVal) return null;
+  return (
+    <div style={{ fontSize: 10, color: "#3ddc97", marginTop: 2, display: "flex", gap: 4 }}>
+      <s style={{ color: "#ef6c6c" }}>{oldVal ? String(oldVal) : '(فارغ)'}</s>
+      <span>{newVal ? String(newVal) : '(فارغ)'}</span>
+    </div>
+  );
+};
+
+export function InlinePricingEditor({
+  region,
+  items,
+  drafts,
+  updateField,
+  onDelete,
+  onSplit,
+  onCreateNew,
+}: InlinePricingEditorProps) {
+  const [section, setSection] = useState<string>(pricingSections[0].key);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [shownHints, setShownHints] = useState<Set<string>>(new Set());
+  const [activeHint, setActiveHint] = useState<{ id: string; field: string; message: string } | null>(null);
+  
+  // Bulk Selection
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+
+  // Drag and Drop
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  // Tag Suggestions
+  const [focusedTagId, setFocusedTagId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleCmdkSection = (e: CustomEvent<string>) => {
+      setSection(e.detail);
+      setSelectedIds(new Set());
+    };
+    window.addEventListener('cmdk-section', handleCmdkSection as EventListener);
+    return () => window.removeEventListener('cmdk-section', handleCmdkSection as EventListener);
+  }, []);
+
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>, index: number, field: string) => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      const nextIndex = e.key === 'ArrowDown' ? index + 1 : index - 1;
+      const nextInput = document.querySelector(`[data-index="${nextIndex}"][data-field="${field}"]`) as HTMLElement;
+      if (nextInput) {
+        nextInput.focus();
+        if ('select' in nextInput) (nextInput as HTMLInputElement).select();
+      }
+    }
+  };
+
+  const handleNamePaste = (e: React.ClipboardEvent<HTMLInputElement>, id: string) => {
+    const text = e.clipboardData.getData('text');
+    const numMatch = text.match(/\b\d+\b/);
+    if (numMatch) {
+      e.preventDefault();
+      const num = parseInt(numMatch[0], 10);
+      const rest = text.replace(numMatch[0], '').trim();
+      updateField(id, "name_ar", rest);
+      updateField(id, "price_min", num);
+      
+      const priceInput = document.querySelector(`[data-id="price-${id}"]`) as HTMLElement;
+      if (priceInput) {
+        priceInput.style.transition = "none";
+        priceInput.style.boxShadow = "0 0 12px #3ddc97";
+        priceInput.style.backgroundColor = "rgba(61, 220, 151, 0.2)";
+        setTimeout(() => {
+          priceInput.style.transition = "all 0.5s";
+          priceInput.style.boxShadow = "none";
+          priceInput.style.backgroundColor = "transparent";
+        }, 50);
+      }
+    }
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.ratecard__price-row') && !target.closest('.bulk-action-bar')) {
+        setSelectedIds(new Set());
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Clear delete confirm after 3s
+  useEffect(() => {
+    if (deleteConfirmId) {
+      const timer = setTimeout(() => setDeleteConfirmId(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [deleteConfirmId]);
+
+  const visibleItems = useMemo(
+    () => {
+      const filtered = items.filter((item) => item.section === section && (item.region === region || item.region === "both"));
+      // We apply draft sort_order if it exists to reflect live sorting
+      return filtered.sort((a, b) => {
+        const orderA = drafts[a.id]?.sort_order ?? a.sort_order ?? 999;
+        const orderB = drafts[b.id]?.sort_order ?? b.sort_order ?? 999;
+        return orderA - orderB;
+      });
+    },
+    [items, region, section, drafts],
+  );
+
+  const sectionAverage = useMemo(() => {
+    const itemsInSection = items.filter(i => i.section === section && (i.region === region || i.region === "both"));
+    let sum = 0;
+    let count = 0;
+    itemsInSection.forEach(i => {
+      const p = drafts[i.id]?.price_min ?? i.price_min;
+      if (typeof p === 'number') {
+        sum += p;
+        count++;
+      }
+    });
+    return count > 0 ? sum / count : 0;
+  }, [items, section, drafts, region]);
+
+  const currentSection = pricingSections.find((entry) => entry.key === section);
+
+  function handleDrop(dropIndex: number) {
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+    
+    const itemA = visibleItems[draggedIndex];
+    const itemB = visibleItems[dropIndex];
+    
+    const orderA = drafts[itemA.id]?.sort_order ?? itemA.sort_order ?? 999;
+    const orderB = drafts[itemB.id]?.sort_order ?? itemB.sort_order ?? 999;
+
+    if (orderA === orderB) {
+      updateField(itemA.id, "sort_order", orderA + (draggedIndex > dropIndex ? -1 : 1));
+      updateField(itemB.id, "sort_order", orderB + (draggedIndex > dropIndex ? 1 : -1));
+    } else {
+      updateField(itemA.id, "sort_order", orderB);
+      updateField(itemB.id, "sort_order", orderA);
+    }
+
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  }
+
+  const handleFocus = (id: string, field: string, message: string) => {
+    if (!shownHints.has(field)) {
+      setActiveHint({ id, field, message });
+      setShownHints(prev => new Set(prev).add(field));
+      setTimeout(() => {
+        setActiveHint(current => (current?.id === id && current?.field === field) ? null : current);
+      }, 4000);
+    }
+  };
+
+  const handleKeyDown = () => {
+    if (activeHint) setActiveHint(null);
+  };
+
+  const toggleSelection = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleItemMouseDown = (e: React.MouseEvent, id: string) => {
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      toggleSelection(id);
+      return;
+    }
+    longPressTimer.current = setTimeout(() => {
+      toggleSelection(id);
+    }, 300);
+  };
+
+  const handleItemMouseUp = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+    }
+  };
+
+  return (
+    <div className="ratecard ratecard--compact" dir="rtl" style={{ height: "100%", overflowY: "auto", border: "1px solid rgba(244,153,33,0.2)", borderRadius: 8, background: "#0e0f11", display: "flex", flexDirection: "column", position: "relative" }} onKeyDown={handleKeyDown}>
+      <header className="ratecard__header" style={{ position: "sticky", top: 0, zIndex: 20, background: "rgba(14,15,17,0.95)", backdropFilter: "blur(8px)", borderBottom: "1px solid rgba(244,153,33,0.15)" }}>
+        <div className="ratecard__brand">
+          <strong style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <MapPin size={16} color="#f49921" /> {regionLabel(region, "ar")}
+          </strong>
+        </div>
+        <div className="ratecard__services" style={{ display: "flex", gap: 8, padding: "12px 16px", overflowX: "auto" }}>
+          {pricingSections.map((entry) => (
+            <button
+              key={entry.key}
+              onClick={() => { setSection(entry.key); setSelectedIds(new Set()); }}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                background: section === entry.key ? "#f49921" : "transparent",
+                color: section === entry.key ? "#000" : "#f0ece4",
+                border: "1px solid #f49921",
+                padding: "6px 12px",
+                borderRadius: 6,
+                cursor: "pointer",
+                whiteSpace: "nowrap",
+                fontSize: 13,
+                fontWeight: section === entry.key ? 700 : 500,
+                transition: "all 0.2s"
+              }}
+            >
+              <span className="[&>svg]:w-4 [&>svg]:h-4">{entry.icon}</span> {entry.ar}
+            </button>
+          ))}
+        </div>
+        <div style={{ padding: "0 16px 12px 16px" }}>
+          <div style={{ position: "relative" }}>
+            <Search size={16} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", color: "#9b948a" }} />
+            <input 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="ابحث عن بند..."
+              style={{ background: "#15171a", border: "1px solid rgba(244,153,33,0.3)", borderRadius: 6, color: "#f0ece4", fontSize: 14, width: "100%", padding: "8px 12px 8px 36px", paddingRight: 36 }}
+              className="focus:border-[#f49921] outline-none"
+            />
+          </div>
+        </div>
+      </header>
+
+      <main className="ratecard__main" style={{ padding: 16, flex: 1, display: "flex", flexDirection: "column" }}>
+        <div className="ratecard__section-title" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+          <h2 style={{ fontSize: 20, margin: 0, display: "flex", gap: 8, alignItems: "center", color: "#f0ece4" }}>
+            <span style={{ color: "#f49921" }} className="[&>svg]:w-5 [&>svg]:h-5">{currentSection?.icon}</span>
+            {currentSection?.ar}
+          </h2>
+          <Button size="sm" onClick={() => onCreateNew(section, region)} style={{ background: "#f49921", color: "#000", fontWeight: "bold" }}>
+            <Plus size={16} style={{ marginLeft: 4 }} /> إضافة بند
+          </Button>
+        </div>
+
+        <div className="ratecard__pricing-list" style={{ display: "flex", flexDirection: "column", gap: 16, flex: 1, paddingBottom: selectedIds.size > 0 ? 80 : 0 }}>
+          {visibleItems.map((item, index) => {
+            const draft = drafts[item.id] || {};
+            const current = { ...item, ...draft };
+            const isBoth = item.region === "both";
+            
+            const descLength = (current.desc_ar || "").length;
+            const isDescLong = descLength > 120;
+            const radius = 6;
+            const circumference = 2 * Math.PI * radius;
+            const dashoffset = circumference - Math.min(1, descLength / 120) * circumference;
+            const gaugeColor = descLength > 120 ? "#ef6c6c" : descLength > 100 ? "#f49921" : "#3ddc97";
+            
+            const isMatch = !searchQuery || current.name_ar?.includes(searchQuery);
+            const isSelected = selectedIds.has(item.id);
+            const hasAmmanHint = region === 'irbid' && (current.name_ar?.includes('عمان') || current.name_ar?.includes('عمّان'));
+
+            const price = current.price_min || 0;
+            let dotColor = "bg-green-500";
+            let diffRatio = sectionAverage > 0 ? Math.abs(price - sectionAverage) / sectionAverage : 0;
+            if (diffRatio > 0.6) dotColor = "bg-red-500";
+            else if (diffRatio > 0.3) dotColor = "bg-yellow-500";
+            const isPriceWarning = price && sectionAverage > 0 && (price < 0.2 * sectionAverage || price > 3 * sectionAverage);
+
+            return (
+              <div 
+                key={item.id} 
+                style={{ position: "relative" }} 
+                className="group"
+                onMouseDown={(e) => handleItemMouseDown(e, item.id)}
+                onMouseUp={handleItemMouseUp}
+                onMouseLeave={handleItemMouseUp}
+                draggable
+                onDragStart={(e) => {
+                  setDraggedIndex(index);
+                  e.dataTransfer.effectAllowed = "move";
+                  // e.dataTransfer.setData('text/plain', item.id); // for firefox
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  if (draggedIndex !== null && draggedIndex !== index) {
+                    setDragOverIndex(index);
+                  }
+                }}
+                onDragLeave={() => setDragOverIndex(null)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  handleDrop(index);
+                }}
+                onDragEnd={() => {
+                  setDraggedIndex(null);
+                  setDragOverIndex(null);
+                }}
+              >
+                {isBoth && (
+                  <div style={{ background: "rgba(244,153,33,0.1)", color: "#f49921", padding: "8px 12px", fontSize: 12, borderRadius: "8px 8px 0 0", display: "flex", justifyContent: "space-between", alignItems: "center", border: "1px solid rgba(244,153,33,0.3)", borderBottom: "none" }}>
+                    <span style={{ display: "flex", alignItems: "center", gap: 6 }}><AlertTriangle size={14} /> هذا البند مشترك. تعديله سيؤثر على المنطقتين.</span>
+                    {onSplit && (
+                      <Button size="sm" variant="outline" style={{ height: 26, fontSize: 11, borderColor: "#f49921", color: "#f49921", transition: "all 0.3s" }} onClick={() => onSplit(item)} className="hover:bg-[#f49921] hover:text-[#000]">
+                        <SplitSquareHorizontal size={14} style={{ marginLeft: 6 }} /> فصل إربد عن عمّان
+                      </Button>
+                    )}
+                  </div>
+                )}
+                
+                <article 
+                  className={`ratecard__price-row transition-all duration-300 ${current.is_featured ? "is-featured" : ""} ${current.is_hidden ? "is-hidden grayscale" : ""}`} 
+                  style={{ 
+                    opacity: draggedIndex === index ? 0.5 : (current.is_hidden ? 0.4 : (!isMatch ? 0.15 : 1)), 
+                    borderTopLeftRadius: isBoth ? 0 : undefined, 
+                    borderTopRightRadius: isBoth ? 0 : undefined, 
+                    position: "relative",
+                    border: isSelected ? "1px solid #f49921" : "1px solid rgba(244,153,33,0.1)",
+                    boxShadow: isSelected ? "0 0 8px rgba(244,153,33,0.4)" : "none",
+                    borderTop: dragOverIndex === index && draggedIndex !== null && draggedIndex > index ? "2px solid #f49921" : (isSelected ? "1px solid #f49921" : "1px solid rgba(244,153,33,0.1)"),
+                    borderBottom: dragOverIndex === index && draggedIndex !== null && draggedIndex < index ? "2px solid #f49921" : (isSelected ? "1px solid #f49921" : "1px solid rgba(244,153,33,0.1)"),
+                  }}
+                >
+                  <div style={{ position: "absolute", right: -24, top: "50%", transform: "translateY(-50%)", zIndex: 10, cursor: "grab" }} className="opacity-0 group-hover:opacity-100 transition-opacity">
+                    <GripVertical size={20} color="#f49921" />
+                  </div>
+
+                  <div className="ratecard__price-copy" style={{ flex: 1, position: "relative", zIndex: 2 }}>
+                    
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                      <div className="relative w-full group/input">
+                        {activeHint?.id === item.id && activeHint?.field === 'name_ar' && (
+                          <div style={{ position: "absolute", top: -28, right: 0, background: "#f49921", color: "#000", padding: "4px 8px", borderRadius: 4, fontSize: 11, fontWeight: "bold", zIndex: 30, whiteSpace: "nowrap" }}>
+                            {activeHint.message}
+                          </div>
+                        )}
+                        <input 
+                          value={current.name_ar} 
+                          onChange={(e) => updateField(item.id, "name_ar", e.target.value)}
+                          onFocus={() => handleFocus(item.id, "name_ar", "اجعله قصيراً وواضحاً — العميل يقرأه في ثانيتين")}
+                          onKeyDown={(e) => handleInputKeyDown(e, index, "name_ar")}
+                          onPaste={(e) => handleNamePaste(e, item.id)}
+                          data-index={index}
+                          data-field="name_ar"
+                          placeholder="اسم البند..."
+                          style={{ background: "transparent", border: "1px solid transparent", borderRadius: 4, color: "#f0ece4", fontSize: 18, fontWeight: 700, width: "100%", padding: "4px 8px", transition: "all 0.2s", textDecoration: current.is_hidden ? "line-through" : "none" }}
+                          className="hover:border-dashed hover:border-[rgba(244,153,33,0.5)] focus:border-solid focus:border-[#f49921] focus:bg-[#15171a]"
+                          title="اضغط للتعديل"
+                        />
+                        <DiffPreview oldVal={item.name_ar} newVal={draft.name_ar} />
+                        {hasAmmanHint && (
+                          <div style={{ fontSize: 11, color: "#f49921", marginTop: 4, fontWeight: "bold" }}>
+                            💡 ملاحظة: أنت تقوم بالتعديل في قسم إربد.
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="relative w-full group/desc mb-3">
+                      {activeHint?.id === item.id && activeHint?.field === 'desc_ar' && (
+                        <div style={{ position: "absolute", top: -28, right: 0, background: "#f49921", color: "#000", padding: "4px 8px", borderRadius: 4, fontSize: 11, fontWeight: "bold", zIndex: 30, whiteSpace: "nowrap" }}>
+                          {activeHint.message}
+                        </div>
+                      )}
+                      <textarea 
+                        value={current.desc_ar || ""} 
+                        onChange={(e) => updateField(item.id, "desc_ar", e.target.value)}
+                        onFocus={() => handleFocus(item.id, "desc_ar", "صف ما يحصل عليه العميل، وليس ما تفعله أنت")}
+                        onKeyDown={(e) => handleInputKeyDown(e, index, "desc_ar")}
+                        data-index={index}
+                        data-field="desc_ar"
+                        placeholder="الوصف..."
+                        rows={2}
+                        style={{ background: "transparent", border: "1px solid transparent", borderRadius: 4, color: "#9b948a", fontSize: 14, width: "100%", padding: "6px 8px", resize: "vertical", fontFamily: "inherit", transition: "all 0.2s" }}
+                        className="hover:border-dashed hover:border-[rgba(244,153,33,0.5)] focus:border-solid focus:border-[#f49921] focus:bg-[#15171a]"
+                        title="اضغط للتعديل"
+                      />
+                      <DiffPreview oldVal={item.desc_ar} newVal={draft.desc_ar} />
+                      <div style={{ position: "absolute", bottom: -18, right: 8, opacity: 0, display: "flex", alignItems: "center", gap: 4 }} className="group-focus-within/desc:opacity-100 transition-opacity">
+                        <svg width="16" height="16" viewBox="0 0 16 16" style={{ transform: "rotate(-90deg)" }}>
+                          <circle cx="8" cy="8" r={radius} fill="none" stroke="#333" strokeWidth="2" />
+                          <circle cx="8" cy="8" r={radius} fill="none" stroke={gaugeColor} strokeWidth="2" strokeDasharray={circumference} strokeDashoffset={dashoffset} style={{ transition: "stroke-dashoffset 0.2s, stroke 0.2s" }} />
+                        </svg>
+                        <span style={{ fontSize: 10, color: gaugeColor }}>{descLength}/120</span>
+                      </div>
+                    </div>
+
+                    <div className="relative w-1/2 group/badge mt-4">
+                      {activeHint?.id === item.id && activeHint?.field === 'tag_ar' && (
+                        <div style={{ position: "absolute", top: -28, right: 0, background: "#f49921", color: "#000", padding: "4px 8px", borderRadius: 4, fontSize: 11, fontWeight: "bold", zIndex: 30, whiteSpace: "nowrap" }}>
+                          {activeHint.message}
+                        </div>
+                      )}
+                      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                        <span style={{ fontSize: 11, color: "#9b948a" }}>الشارة:</span>
+                        <input 
+                          value={current.tag_ar || ""} 
+                          onChange={(e) => updateField(item.id, "tag_ar", e.target.value)}
+                          onFocus={() => { handleFocus(item.id, "tag_ar", "مثال: الأكثر طلباً، جديد، عرض محدود"); setFocusedTagId(item.id); }}
+                          onBlur={() => setTimeout(() => setFocusedTagId(null), 200)}
+                          onKeyDown={(e) => handleInputKeyDown(e, index, "tag_ar")}
+                          data-index={index}
+                          data-field="tag_ar"
+                          placeholder="مثال: جديد، الأكثر مبيعاً"
+                          style={{ background: "transparent", border: "1px dashed rgba(255,255,255,0.2)", borderRadius: 4, color: "#f49921", fontSize: 11, padding: "2px 6px", width: "100%" }}
+                          className="focus:border-[#f49921] focus:bg-[#15171a]"
+                        />
+                      </div>
+                      <DiffPreview oldVal={item.tag_ar} newVal={draft.tag_ar} />
+                      {focusedTagId === item.id && (
+                        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, background: "#15171a", border: "1px solid rgba(244,153,33,0.3)", borderRadius: 4, zIndex: 40, display: "flex", flexDirection: "column", marginTop: 4 }}>
+                          {["الأكثر طلباً", "جديد", "عرض محدود", "خصم خاص"].map(tag => (
+                            <div 
+                              key={tag} 
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                updateField(item.id, "tag_ar", tag);
+                                setFocusedTagId(null);
+                              }}
+                              style={{ padding: "4px 8px", fontSize: 11, color: "#f0ece4", cursor: "pointer", borderBottom: "1px solid rgba(255,255,255,0.05)" }}
+                            >
+                              {tag}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="ratecard__price-value" style={{ minWidth: 140, position: "relative", zIndex: 2 }}>
+                    <input 
+                      value={current.price_label_ar || ""} 
+                      onChange={(e) => updateField(item.id, "price_label_ar", e.target.value)}
+                      onKeyDown={(e) => handleInputKeyDown(e, index, "price_label_ar")}
+                      data-index={index}
+                      data-field="price_label_ar"
+                      placeholder="تسمية السعر..."
+                      style={{ background: "transparent", border: "1px solid transparent", borderRadius: 4, color: "#9b948a", fontSize: 12, textAlign: "center", width: "100%", padding: "2px 4px", marginBottom: 4, transition: "all 0.2s" }}
+                      className="hover:border-dashed hover:border-[rgba(244,153,33,0.5)] focus:border-solid focus:border-[#f49921] focus:bg-[#15171a]"
+                    />
+                    <DiffPreview oldVal={item.price_label_ar} newVal={draft.price_label_ar} />
+                    
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 4, marginBottom: 4, position: "relative" }}>
+                      <div title={`متوسط القسم: ${Math.round(sectionAverage)}`} className={`w-2 h-2 rounded-full ${dotColor} absolute -right-2 top-1/2 -translate-y-1/2 cursor-help`} />
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <input 
+                          type="number"
+                          value={current.price_min === null ? "" : current.price_min} 
+                          onChange={(e) => updateField(item.id, "price_min", e.target.value === "" ? null : Number(e.target.value))}
+                          onKeyDown={(e) => handleInputKeyDown(e, index, "price_min")}
+                          data-index={index}
+                          data-field="price_min"
+                          data-id={`price-${item.id}`}
+                          placeholder="0"
+                          style={{ background: "transparent", border: "1px solid transparent", borderRadius: 4, color: "#f49921", fontSize: 26, fontWeight: 800, width: 70, textAlign: "center", padding: "0 4px", transition: "all 0.2s" }}
+                          className="hover:border-dashed hover:border-[rgba(244,153,33,0.5)] focus:border-solid focus:border-[#f49921] focus:bg-[#15171a]"
+                        />
+                        <DiffPreview oldVal={item.price_min} newVal={draft.price_min} />
+                      </div>
+                      <span style={{ color: "#f49921", fontWeight: "bold" }}>-</span>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
+                        {activeHint?.id === item.id && activeHint?.field === 'price_max' && (
+                          <div style={{ position: "absolute", top: -28, right: "50%", transform: "translateX(50%)", background: "#f49921", color: "#000", padding: "4px 8px", borderRadius: 4, fontSize: 11, fontWeight: "bold", zIndex: 30, whiteSpace: "nowrap" }}>
+                            {activeHint.message}
+                          </div>
+                        )}
+                        <input 
+                          type="number"
+                          value={current.price_max === null ? "" : current.price_max} 
+                          onChange={(e) => updateField(item.id, "price_max", e.target.value === "" ? null : Number(e.target.value))}
+                          onFocus={() => handleFocus(item.id, "price_max", "اتركه فارغاً إذا كان السعر ثابتاً")}
+                          onKeyDown={(e) => handleInputKeyDown(e, index, "price_max")}
+                          data-index={index}
+                          data-field="price_max"
+                          placeholder="أعلى"
+                          style={{ background: "transparent", border: "1px solid transparent", borderRadius: 4, color: "#f49921", fontSize: 16, fontWeight: 700, width: 60, textAlign: "center", padding: "2px 4px", transition: "all 0.2s" }}
+                          className="hover:border-dashed hover:border-[rgba(244,153,33,0.5)] focus:border-solid focus:border-[#f49921] focus:bg-[#15171a]"
+                        />
+                        <DiffPreview oldVal={item.price_max} newVal={draft.price_max} />
+                      </div>
+                    </div>
+                    {isPriceWarning && (
+                      <div style={{ fontSize: 10, color: "#f49921", marginTop: 4, display: "flex", alignItems: "center", justifyContent: "center", gap: 4, position: "absolute", bottom: -24, width: "100%" }}>
+                        ⚠️ هذا السعر بعيد عن متوسط أسعارك في هذا القسم
+                      </div>
+                    )}
+
+                    <input 
+                      value={current.unit_ar || ""} 
+                      onChange={(e) => updateField(item.id, "unit_ar", e.target.value)}
+                      onKeyDown={(e) => handleInputKeyDown(e, index, "unit_ar")}
+                      data-index={index}
+                      data-field="unit_ar"
+                      placeholder="الوحدة (JOD)"
+                      style={{ background: "transparent", border: "1px solid transparent", borderRadius: 4, color: "#cfc8bd", fontSize: 13, textAlign: "center", width: "100%", padding: "2px 4px", transition: "all 0.2s" }}
+                      className="hover:border-dashed hover:border-[rgba(244,153,33,0.5)] focus:border-solid focus:border-[#f49921] focus:bg-[#15171a]"
+                    />
+                    <DiffPreview oldVal={item.unit_ar} newVal={draft.unit_ar} />
+                  </div>
+
+                  {/* Actions overlay */}
+                  <div style={{ position: "absolute", top: 12, left: 12, display: "flex", flexDirection: "column", gap: 6, zIndex: 10, opacity: 0 }} className="group-hover:opacity-100 transition-opacity">
+                    <Button size="icon" variant="outline" style={{ width: 32, height: 32, background: "rgba(14,15,17,0.8)" }} onClick={() => updateField(item.id, "is_hidden", !current.is_hidden)} title={current.is_hidden ? "إظهار" : "إخفاء"}>
+                      {current.is_hidden ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </Button>
+                    
+                    {deleteConfirmId === item.id ? (
+                      <Button size="sm" variant="destructive" style={{ height: 32, fontSize: 11, background: "#ef6c6c", color: "#fff", whiteSpace: "nowrap", position: "absolute", left: 0, top: 38 }} onClick={() => onDelete(item.id)}>
+                        تأكيد الحذف؟
+                      </Button>
+                    ) : (
+                      <Button size="icon" variant="outline" style={{ width: 32, height: 32, color: "#ef6c6c", borderColor: "#ef6c6c50", background: "rgba(14,15,17,0.8)" }} onClick={() => setDeleteConfirmId(item.id)} title="حذف">
+                        <Trash2 size={16} />
+                      </Button>
+                    )}
+                  </div>
+                </article>
+              </div>
+            );
+          })}
+          
+          {visibleItems.length === 0 && (
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 40, color: "#9b948a", textAlign: "center", border: "1px dashed rgba(244,153,33,0.2)", borderRadius: 12 }}>
+              <div className="hover:animate-bounce cursor-pointer mb-4" onClick={() => onCreateNew(section, region)}>
+                <PackageOpen size={48} color="#f49921" opacity={0.6} />
+              </div>
+              <h3 style={{ fontSize: 18, color: "#f0ece4", marginBottom: 8 }}>لا يوجد أسعار هنا بعد</h3>
+              <p style={{ fontSize: 13, maxWidth: 200, marginBottom: 16 }}>اضغط على الزر في الأعلى أو على الصندوق لإضافة تسعيرة جديدة.</p>
+              <Button variant="outline" onClick={() => onCreateNew(section, region)} style={{ borderColor: "#f49921", color: "#f49921" }}>
+                <Plus size={16} style={{ marginLeft: 6 }} /> إضافة بند
+              </Button>
+            </div>
+          )}
+        </div>
+      </main>
+
+      {/* Bulk Action Bar */}
+      <div 
+        className={`bulk-action-bar transition-transform duration-300 ${selectedIds.size > 0 ? "translate-y-0" : "translate-y-full"}`}
+        style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(14,15,17,0.95)", backdropFilter: "blur(8px)", borderTop: "1px solid rgba(244,153,33,0.3)", padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 30, boxShadow: "0 -4px 12px rgba(0,0,0,0.5)" }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <span style={{ display: "flex", alignItems: "center", gap: 6, color: "#f49921", fontWeight: "bold" }}>
+            <Check size={18} /> {selectedIds.size} بنود محددة
+          </span>
+          <Button variant="ghost" size="sm" onClick={() => setSelectedIds(new Set())} style={{ color: "#9b948a" }}>إلغاء التحديد</Button>
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => {
+              selectedIds.forEach(id => updateField(id, "is_hidden", true));
+              setSelectedIds(new Set());
+            }}
+            style={{ borderColor: "rgba(255,255,255,0.2)", color: "#f0ece4" }}
+          >
+            <EyeOff size={16} style={{ marginLeft: 6 }} /> إخفاء الكل
+          </Button>
+          <Button 
+            variant="destructive" 
+            size="sm" 
+            onClick={() => {
+              if (confirm(`هل أنت متأكد من حذف ${selectedIds.size} بنود؟`)) {
+                selectedIds.forEach(id => onDelete(id));
+                setSelectedIds(new Set());
+              }
+            }}
+            style={{ background: "#ef6c6c", color: "#fff" }}
+          >
+            <Trash2 size={16} style={{ marginLeft: 6 }} /> حذف الكل
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
