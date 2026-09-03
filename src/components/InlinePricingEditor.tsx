@@ -1,5 +1,5 @@
-import { useMemo, useState, useEffect } from "react";
-import { Check, MapPin, Plus, Trash2, SplitSquareHorizontal, Eye, EyeOff, ArrowUp, ArrowDown, PackageOpen, Info, AlertTriangle, Search } from "lucide-react";
+import { useMemo, useState, useEffect, useRef } from "react";
+import { Check, MapPin, Plus, Trash2, SplitSquareHorizontal, Eye, EyeOff, GripVertical, PackageOpen, Info, AlertTriangle, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   pricingSections,
@@ -44,6 +44,25 @@ export function InlinePricingEditor({
   const [searchQuery, setSearchQuery] = useState("");
   const [shownHints, setShownHints] = useState<Set<string>>(new Set());
   const [activeHint, setActiveHint] = useState<{ id: string; field: string; message: string } | null>(null);
+  
+  // Bulk Selection
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+
+  // Drag and Drop
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.ratecard__price-row') && !target.closest('.bulk-action-bar')) {
+        setSelectedIds(new Set());
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Clear delete confirm after 3s
   useEffect(() => {
@@ -82,24 +101,29 @@ export function InlinePricingEditor({
 
   const currentSection = pricingSections.find((entry) => entry.key === section);
 
-  function moveItem(index: number, direction: -1 | 1) {
-    if (index + direction < 0 || index + direction >= visibleItems.length) return;
+  function handleDrop(dropIndex: number) {
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
     
-    // We swap the sort_order of the two items
-    const itemA = visibleItems[index];
-    const itemB = visibleItems[index + direction];
+    const itemA = visibleItems[draggedIndex];
+    const itemB = visibleItems[dropIndex];
     
     const orderA = drafts[itemA.id]?.sort_order ?? itemA.sort_order ?? 999;
     const orderB = drafts[itemB.id]?.sort_order ?? itemB.sort_order ?? 999;
 
-    // If they have the same sort_order, just force a difference
     if (orderA === orderB) {
-      updateField(itemA.id, "sort_order", orderA + (direction === -1 ? -1 : 1));
-      updateField(itemB.id, "sort_order", orderB + (direction === -1 ? 1 : -1));
+      updateField(itemA.id, "sort_order", orderA + (draggedIndex > dropIndex ? -1 : 1));
+      updateField(itemB.id, "sort_order", orderB + (draggedIndex > dropIndex ? 1 : -1));
     } else {
       updateField(itemA.id, "sort_order", orderB);
       updateField(itemB.id, "sort_order", orderA);
     }
+
+    setDraggedIndex(null);
+    setDragOverIndex(null);
   }
 
   const handleFocus = (id: string, field: string, message: string) => {
@@ -116,8 +140,34 @@ export function InlinePricingEditor({
     if (activeHint) setActiveHint(null);
   };
 
+  const toggleSelection = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleItemMouseDown = (e: React.MouseEvent, id: string) => {
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      toggleSelection(id);
+      return;
+    }
+    longPressTimer.current = setTimeout(() => {
+      toggleSelection(id);
+    }, 300);
+  };
+
+  const handleItemMouseUp = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+    }
+  };
+
   return (
-    <div className="ratecard ratecard--compact" dir="rtl" style={{ height: "100%", overflowY: "auto", border: "1px solid rgba(244,153,33,0.2)", borderRadius: 8, background: "#0e0f11", display: "flex", flexDirection: "column" }} onKeyDown={handleKeyDown}>
+    <div className="ratecard ratecard--compact" dir="rtl" style={{ height: "100%", overflowY: "auto", border: "1px solid rgba(244,153,33,0.2)", borderRadius: 8, background: "#0e0f11", display: "flex", flexDirection: "column", position: "relative" }} onKeyDown={handleKeyDown}>
       <header className="ratecard__header" style={{ position: "sticky", top: 0, zIndex: 20, background: "rgba(14,15,17,0.95)", backdropFilter: "blur(8px)", borderBottom: "1px solid rgba(244,153,33,0.15)" }}>
         <div className="ratecard__brand">
           <strong style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -128,7 +178,7 @@ export function InlinePricingEditor({
           {pricingSections.map((entry) => (
             <button
               key={entry.key}
-              onClick={() => setSection(entry.key)}
+              onClick={() => { setSection(entry.key); setSelectedIds(new Set()); }}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -174,7 +224,7 @@ export function InlinePricingEditor({
           </Button>
         </div>
 
-        <div className="ratecard__pricing-list" style={{ display: "flex", flexDirection: "column", gap: 16, flex: 1 }}>
+        <div className="ratecard__pricing-list" style={{ display: "flex", flexDirection: "column", gap: 16, flex: 1, paddingBottom: selectedIds.size > 0 ? 80 : 0 }}>
           {visibleItems.map((item, index) => {
             const draft = drafts[item.id] || {};
             const current = { ...item, ...draft };
@@ -184,6 +234,7 @@ export function InlinePricingEditor({
             const isDescLong = descLength > 120;
             
             const isMatch = !searchQuery || current.name_ar?.includes(searchQuery);
+            const isSelected = selectedIds.has(item.id);
 
             const price = current.price_min || 0;
             let dotColor = "bg-green-500";
@@ -193,7 +244,35 @@ export function InlinePricingEditor({
             const isPriceWarning = price && sectionAverage > 0 && (price < 0.2 * sectionAverage || price > 3 * sectionAverage);
 
             return (
-              <div key={item.id} style={{ position: "relative" }} className="group">
+              <div 
+                key={item.id} 
+                style={{ position: "relative" }} 
+                className="group"
+                onMouseDown={(e) => handleItemMouseDown(e, item.id)}
+                onMouseUp={handleItemMouseUp}
+                onMouseLeave={handleItemMouseUp}
+                draggable
+                onDragStart={(e) => {
+                  setDraggedIndex(index);
+                  e.dataTransfer.effectAllowed = "move";
+                  // e.dataTransfer.setData('text/plain', item.id); // for firefox
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  if (draggedIndex !== null && draggedIndex !== index) {
+                    setDragOverIndex(index);
+                  }
+                }}
+                onDragLeave={() => setDragOverIndex(null)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  handleDrop(index);
+                }}
+                onDragEnd={() => {
+                  setDraggedIndex(null);
+                  setDragOverIndex(null);
+                }}
+              >
                 {isBoth && (
                   <div style={{ background: "rgba(244,153,33,0.1)", color: "#f49921", padding: "8px 12px", fontSize: 12, borderRadius: "8px 8px 0 0", display: "flex", justifyContent: "space-between", alignItems: "center", border: "1px solid rgba(244,153,33,0.3)", borderBottom: "none" }}>
                     <span style={{ display: "flex", alignItems: "center", gap: 6 }}><AlertTriangle size={14} /> هذا البند مشترك. تعديله سيؤثر على المنطقتين.</span>
@@ -208,17 +287,18 @@ export function InlinePricingEditor({
                 <article 
                   className={`ratecard__price-row transition-all duration-300 ${current.is_featured ? "is-featured" : ""} ${current.is_hidden ? "is-hidden grayscale" : ""}`} 
                   style={{ 
-                    opacity: current.is_hidden ? 0.4 : (!isMatch ? 0.15 : 1), 
+                    opacity: draggedIndex === index ? 0.5 : (current.is_hidden ? 0.4 : (!isMatch ? 0.15 : 1)), 
                     borderTopLeftRadius: isBoth ? 0 : undefined, 
                     borderTopRightRadius: isBoth ? 0 : undefined, 
                     position: "relative",
-                    border: "1px solid rgba(244,153,33,0.1)",
+                    border: isSelected ? "1px solid #f49921" : "1px solid rgba(244,153,33,0.1)",
+                    boxShadow: isSelected ? "0 0 8px rgba(244,153,33,0.4)" : "none",
+                    borderTop: dragOverIndex === index && draggedIndex !== null && draggedIndex > index ? "2px solid #f49921" : (isSelected ? "1px solid #f49921" : "1px solid rgba(244,153,33,0.1)"),
+                    borderBottom: dragOverIndex === index && draggedIndex !== null && draggedIndex < index ? "2px solid #f49921" : (isSelected ? "1px solid #f49921" : "1px solid rgba(244,153,33,0.1)"),
                   }}
                 >
-                  {/* Sorting controls */}
-                  <div style={{ position: "absolute", right: -12, top: "50%", transform: "translateY(-50%)", display: "flex", flexDirection: "column", gap: 4, zIndex: 10, opacity: 0 }} className="group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => moveItem(index, -1)} disabled={index === 0} style={{ background: "#15171a", border: "1px solid rgba(244,153,33,0.4)", borderRadius: "50%", width: 24, height: 24, display: "flex", alignItems: "center", justifyContent: "center", color: index === 0 ? "#555" : "#f49921", cursor: index === 0 ? "default" : "pointer" }}><ArrowUp size={14} /></button>
-                    <button onClick={() => moveItem(index, 1)} disabled={index === visibleItems.length - 1} style={{ background: "#15171a", border: "1px solid rgba(244,153,33,0.4)", borderRadius: "50%", width: 24, height: 24, display: "flex", alignItems: "center", justifyContent: "center", color: index === visibleItems.length - 1 ? "#555" : "#f49921", cursor: index === visibleItems.length - 1 ? "default" : "pointer" }}><ArrowDown size={14} /></button>
+                  <div style={{ position: "absolute", right: -24, top: "50%", transform: "translateY(-50%)", zIndex: 10, cursor: "grab" }} className="opacity-0 group-hover:opacity-100 transition-opacity">
+                    <GripVertical size={20} color="#f49921" />
                   </div>
 
                   <div className="ratecard__price-copy" style={{ flex: 1, position: "relative", zIndex: 2 }}>
@@ -382,6 +462,45 @@ export function InlinePricingEditor({
           )}
         </div>
       </main>
+
+      {/* Bulk Action Bar */}
+      <div 
+        className={`bulk-action-bar transition-transform duration-300 ${selectedIds.size > 0 ? "translate-y-0" : "translate-y-full"}`}
+        style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(14,15,17,0.95)", backdropFilter: "blur(8px)", borderTop: "1px solid rgba(244,153,33,0.3)", padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 30, boxShadow: "0 -4px 12px rgba(0,0,0,0.5)" }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <span style={{ display: "flex", alignItems: "center", gap: 6, color: "#f49921", fontWeight: "bold" }}>
+            <Check size={18} /> {selectedIds.size} بنود محددة
+          </span>
+          <Button variant="ghost" size="sm" onClick={() => setSelectedIds(new Set())} style={{ color: "#9b948a" }}>إلغاء التحديد</Button>
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => {
+              selectedIds.forEach(id => updateField(id, "is_hidden", true));
+              setSelectedIds(new Set());
+            }}
+            style={{ borderColor: "rgba(255,255,255,0.2)", color: "#f0ece4" }}
+          >
+            <EyeOff size={16} style={{ marginLeft: 6 }} /> إخفاء الكل
+          </Button>
+          <Button 
+            variant="destructive" 
+            size="sm" 
+            onClick={() => {
+              if (confirm(`هل أنت متأكد من حذف ${selectedIds.size} بنود؟`)) {
+                selectedIds.forEach(id => onDelete(id));
+                setSelectedIds(new Set());
+              }
+            }}
+            style={{ background: "#ef6c6c", color: "#fff" }}
+          >
+            <Trash2 size={16} style={{ marginLeft: 6 }} /> حذف الكل
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

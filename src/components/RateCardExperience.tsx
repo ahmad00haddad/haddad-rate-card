@@ -28,6 +28,22 @@ const policies = [
   { icon: "📍", ar: "خارج إربد", en: "Outside Irbid", value: "+", descAr: "رسوم تنقل حسب المسافة", descEn: "Travel fees by distance" },
 ];
 
+const sectionColors: Record<string, string> = {
+  reels: '#f49921',
+  films: '#e84393',
+  commercials: '#00b894',
+  docs: '#0984e3',
+  events: '#fd79a8',
+  editing: '#6c5ce7',
+  dayrate: '#fdcb6e',
+};
+const defaultAccent = '#f49921';
+
+function hexToRgb(hex: string) {
+  const h = hex.replace('#', '');
+  return `${parseInt(h.substring(0,2),16)}, ${parseInt(h.substring(2,4),16)}, ${parseInt(h.substring(4,6),16)}`;
+}
+
 const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
 
 function AnimatedNumber({ value }: { value: string }) {
@@ -117,6 +133,34 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
 
   const rtl = language === "ar";
   
+  const currentAccent = section && sectionColors[section] ? sectionColors[section] : defaultAccent;
+  const [isMobile, setIsMobile] = useState(false);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX === null) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const deltaX = touchEndX - touchStartX;
+    const isSwipeBack = rtl ? deltaX < -80 : deltaX > 80;
+    
+    if (isSwipeBack) {
+      if (step === 3) setSection(null);
+      else if (step === 2) setRegion(null);
+    }
+    setTouchStartX(null);
+  };
+
   const [autoDetected, setAutoDetected] = useState(false);
   
   // Auto-detect Jordan region
@@ -180,7 +224,12 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
   }
 
   return (
-    <div className={`ratecard ${compact ? "ratecard--compact" : ""}`} dir={rtl ? "rtl" : "ltr"}>
+    <div 
+      className={`ratecard ${compact ? "ratecard--compact" : ""}`} 
+      dir={rtl ? "rtl" : "ltr"}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       {isSticky && step === 3 && region && section && (
         <div style={{ 
           position: "fixed", top: 0, left: 0, right: 0, background: "rgba(10, 10, 10, 0.95)", 
@@ -195,6 +244,34 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
           <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} style={{ marginLeft: rtl ? 0 : 'auto', marginRight: rtl ? 'auto' : 0, fontSize: 12, background: "rgba(244,153,33,0.15)", color: "#f49921", padding: "4px 8px", borderRadius: 4, transition: "background 0.2s" }} className="hover:bg-[rgba(244,153,33,0.25)]">
             {text("العودة للأعلى ↑", "Back to top ↑")}
           </button>
+        </div>
+      )}
+
+      {isMobile && step > 1 && (
+        <div 
+          style={{ 
+            position: 'fixed', bottom: 0, left: 0, right: 0, 
+            background: 'rgba(10, 10, 10, 0.85)', backdropFilter: 'blur(12px)',
+            borderTop: '1px solid rgba(255,255,255,0.1)', padding: '16px', zIndex: 100,
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+          }}
+        >
+          <button onClick={() => step === 3 ? setSection(null) : setRegion(null)} style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#f0ece4' }}>
+            {rtl ? <ArrowRight size={18} /> : <ArrowLeft size={18} />}
+            <span>{text("رجوع", "Back")}</span>
+          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: currentAccent }}>
+            {region && <span>📍 {regionLabel(region, language)}</span>}
+            {section && currentSection && (
+              <>
+                <span style={{ color: '#9b948a' }}>/</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span className="[&>svg]:w-4 [&>svg]:h-4">{currentSection.icon}</span>
+                  {text(currentSection.ar, currentSection.en)}
+                </span>
+              </>
+            )}
+          </div>
         </div>
       )}
 
@@ -221,16 +298,100 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
         <h1>{text("قائمة ", "Rate ")}<span>{text("التسعيرات", "Card")}</span></h1>
         <p>{text("اختر المنطقة والخدمة واعرف السعر فوراً", "Choose your region and service to view pricing")}</p>
         
-        {/* Interactive Stepper */}
-        <div className="ratecard__steps" aria-label={text("خطوات عرض السعر", "Pricing steps")} style={{ cursor: "pointer" }}>
-          <div className={step >= 1 ? "is-active" : ""} onClick={() => { setRegion(null); setSection(null); }}><span>1</span><small>{text("المنطقة", "Region")}</small></div>
-          <div className={step >= 2 ? "is-active" : ""} onClick={() => { if (region) setSection(null); }}><span>2</span><small>{text("الخدمة", "Service")}</small></div>
-          <div className={step >= 3 ? "is-active" : ""}><span>3</span><small>{text("السعر", "Price")}</small></div>
+        {/* Breadcrumb Progress */}
+        <div 
+          aria-label={text("خطوات عرض السعر", "Pricing steps")} 
+          style={{ 
+            display: "flex", 
+            alignItems: "center", 
+            justifyContent: "center", 
+            gap: 16,
+            marginTop: 32,
+            flexWrap: "wrap"
+          }}
+        >
+          <div 
+            onClick={() => { setRegion(null); setSection(null); }}
+            style={{ 
+              cursor: "pointer", 
+              display: "flex", 
+              alignItems: "center", 
+              gap: 8,
+              color: step === 1 ? currentAccent : (step > 1 ? "#f0ece4" : "#9b948a"),
+              fontWeight: step === 1 ? 700 : (step > 1 ? 500 : 400),
+              transition: "all 0.3s ease"
+            }}
+          >
+            <span>📍</span>
+            <span>{region ? regionLabel(region, language) : text("المنطقة", "Region")}</span>
+          </div>
+
+          <div style={{ position: "relative", width: 40, height: 2, background: "rgba(255,255,255,0.1)", borderRadius: 2, overflow: "hidden" }}>
+            <div style={{ 
+              position: "absolute", top: 0, bottom: 0, 
+              left: rtl ? "auto" : 0, right: rtl ? 0 : "auto",
+              width: step >= 2 ? "100%" : "0%", 
+              background: currentAccent, 
+              transition: "width 0.5s ease-out" 
+            }} />
+          </div>
+
+          <div 
+            onClick={() => { if (region) setSection(null); }}
+            style={{ 
+              cursor: region ? "pointer" : "default", 
+              display: "flex", 
+              alignItems: "center", 
+              gap: 8,
+              color: step === 2 ? currentAccent : (step > 2 ? "#f0ece4" : "#9b948a"),
+              fontWeight: step === 2 ? 700 : (step > 2 ? 500 : 400),
+              transition: "all 0.3s ease",
+              opacity: step >= 2 ? 1 : 0.5
+            }}
+          >
+            <span className="[&>svg]:w-4 [&>svg]:h-4">{currentSection?.icon || "🎬"}</span>
+            <span>{section && currentSection ? text(currentSection.ar, currentSection.en) : text("الخدمة", "Service")}</span>
+          </div>
+
+          <div style={{ position: "relative", width: 40, height: 2, background: "rgba(255,255,255,0.1)", borderRadius: 2, overflow: "hidden" }}>
+            <div style={{ 
+              position: "absolute", top: 0, bottom: 0, 
+              left: rtl ? "auto" : 0, right: rtl ? 0 : "auto",
+              width: step >= 3 ? "100%" : "0%", 
+              background: currentAccent, 
+              transition: "width 0.5s ease-out" 
+            }} />
+          </div>
+
+          <div 
+            style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              gap: 8,
+              color: step === 3 ? currentAccent : "#9b948a",
+              fontWeight: step === 3 ? 700 : 400,
+              transition: "all 0.3s ease",
+              opacity: step >= 3 ? 1 : 0.5
+            }}
+          >
+            <span>💰</span>
+            <span>{text("الأسعار", "Price")}</span>
+          </div>
         </div>
       </section>
 
       <main className="ratecard__main">
-        {!region && (
+        <style>{`
+          @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          .ratecard__stage-enter {
+            animation: fadeSlideIn 0.4s ease-out forwards;
+          }
+        `}</style>
+        <div key={step} className="ratecard__stage-enter">
+          {!region && (
           <section className="ratecard__stage">
             <div className="ratecard__section-title"><h2>{text("أين سيتم التصوير؟", "Where will the shoot take place?")}</h2><p>{text("اختر المنطقة لعرض أسعارها فقط", "Choose a region to see its prices only")}</p></div>
             <div className="ratecard__regions">
@@ -255,27 +416,31 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
                 const previewAr = `${itemCount} خيارات ${minPriceStr ? `· من ${minPriceStr}` : ""}`;
                 const previewEn = `${itemCount} options ${minPriceStr ? `· from ${minPriceStr}` : ""}`;
 
+                const entryAccent = sectionColors[entry.key] || defaultAccent;
                 return (
                   <button 
                     key={entry.key} 
                     onClick={() => chooseSection(entry.key)}
                     style={{
                       display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, padding: "32px 16px",
-                      background: "rgba(255,255,255,0.03)", border: "1px solid rgba(244,153,33,0.2)", borderRadius: 12, transition: "all 0.3s ease",
-                      position: "relative"
-                    }}
-                    className="hover:bg-[rgba(244,153,33,0.1)] hover:-translate-y-1 group"
+                      background: "rgba(255,255,255,0.03)", border: `1px solid rgba(${hexToRgb(entryAccent)}, 0.2)`, borderRadius: 12, transition: "all 0.3s ease",
+                      position: "relative",
+                      "--hover-text": entryAccent,
+                    } as React.CSSProperties}
+                    className="hover:-translate-y-1 group"
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = `rgba(${hexToRgb(entryAccent)}, 0.6)`; e.currentTarget.style.background = `rgba(${hexToRgb(entryAccent)}, 0.05)`; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = `rgba(${hexToRgb(entryAccent)}, 0.2)`; e.currentTarget.style.background = "rgba(255,255,255,0.03)"; }}
                   >
-                    <span className="text-[#9b948a] group-hover:text-[#f49921] transition-colors [&>svg]:w-10 [&>svg]:h-10">
+                    <span style={{ color: "#9b948a", transition: "color 0.3s" }} className="group-hover:!text-[var(--hover-text)] [&>svg]:w-10 [&>svg]:h-10">
                       {entry.icon}
                     </span>
                     <div style={{ textAlign: "center" }}>
-                      <strong style={{ display: "block", fontSize: 18, color: "#f0ece4" }} className="group-hover:text-white transition-colors">{text(entry.ar, entry.en)}</strong>
-                      <small style={{ color: "#9b948a", fontSize: 13 }} className="group-hover:text-[#f49921] transition-colors">{entry.en}</small>
+                      <strong style={{ display: "block", fontSize: 18, color: "#f0ece4", transition: "color 0.3s" }} className="group-hover:text-white">{text(entry.ar, entry.en)}</strong>
+                      <small style={{ color: "#9b948a", fontSize: 13, transition: "color 0.3s" }} className="group-hover:!text-[var(--hover-text)]">{entry.en}</small>
                     </div>
                     {/* Hover preview */}
                     <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 absolute -bottom-4 left-0 right-0 flex justify-center translate-y-2 group-hover:translate-y-0" style={{ pointerEvents: 'none', zIndex: 10 }}>
-                      <span style={{ fontSize: 12, color: "#f49921", background: "#15171a", border: "1px solid rgba(244,153,33,0.3)", padding: "4px 10px", borderRadius: 12, whiteSpace: "nowrap", boxShadow: "0 4px 6px rgba(0,0,0,0.3)" }}>
+                      <span style={{ fontSize: 12, color: entryAccent, background: "#15171a", border: `1px solid rgba(${hexToRgb(entryAccent)}, 0.3)`, padding: "4px 10px", borderRadius: 12, whiteSpace: "nowrap", boxShadow: "0 4px 6px rgba(0,0,0,0.3)" }}>
                         {text(previewAr, previewEn)}
                       </span>
                     </div>
@@ -296,7 +461,7 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
             
             <div className="ratecard__section-title" style={{ marginTop: 24 }}>
               <h2 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: '#f0ece4' }}>
-                <span style={{ color: '#f49921' }} className="[&>svg]:w-7 [&>svg]:h-7">{currentSection?.icon}</span>
+                <span style={{ color: currentAccent }} className="[&>svg]:w-7 [&>svg]:h-7">{currentSection?.icon}</span>
                 {text(currentSection?.ar ?? "", currentSection?.en ?? "")}
               </h2>
               <p>{text("الأسعار التالية خاصة بالمنطقة المختارة", "Pricing for your selected region")}</p>
@@ -305,7 +470,7 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
             <div className="ratecard__pricing-list">
               {visibleItems.map((item, index) => (
                 <StaggerItem key={item.id} delayIndex={index}>
-                  <PricingRow item={item} language={language} currency={currency} region={region} />
+                  <PricingRow item={item} language={language} currency={currency} region={region} accent={currentAccent} />
                 </StaggerItem>
               ))}
               {visibleItems.length === 0 && <div className="ratecard__empty">{text("لا توجد بنود منشورة لهذه الخدمة حالياً.", "No published items for this service yet.")}</div>}
@@ -328,6 +493,7 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
             </div>
           </section>
         )}
+        </div>
       </main>
 
     </div>
@@ -338,7 +504,7 @@ function RegionButton({ region, language, onClick }: { region: Exclude<PricingRe
   return <button className="ratecard__region-pill" onClick={onClick}><MapPin /><span>{language === "ar" ? "المنطقة:" : "Region:"}</span><strong>{regionLabel(region, language)}</strong><small>{language === "ar" ? "تغيير" : "Change"}</small></button>;
 }
 
-function PricingRow({ item, language, currency, region }: { item: PricingItem; language: PricingLanguage, currency: "JOD" | "USD", region: Exclude<PricingRegion, "both"> }) {
+function PricingRow({ item, language, currency, region, accent = '#f49921' }: { item: PricingItem; language: PricingLanguage, currency: "JOD" | "USD", region: Exclude<PricingRegion, "both">, accent?: string }) {
   const ar = language === "ar";
   const unit = ar ? item.unit_ar : item.unit_en;
   const note = ar ? item.note_ar : item.note_en;
@@ -359,24 +525,36 @@ function PricingRow({ item, language, currency, region }: { item: PricingItem; l
   }
 
   return (
-    <article className={`ratecard__price-row ${item.is_featured ? "is-featured" : ""}`} style={{ paddingBottom: 24 }}>
-      <div className="ratecard__price-copy">
-        {item.is_featured && (ar ? item.tag_ar : item.tag_en) && <span className="ratecard__tag">{ar ? item.tag_ar : item.tag_en}</span>}
-        <h3>{title}</h3>
-        
-        {/* Progressive Disclosure for long descriptions (using simple CSS line-clamp) */}
-        <p style={{ display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+    <article 
+      className={`ratecard__price-row ${item.is_featured ? "is-featured" : ""}`} 
+      style={{ 
+        paddingBottom: 24,
+        display: "flex",
+        flexDirection: "column",
+        gap: 8,
+        borderLeft: !ar ? `3px solid rgba(${hexToRgb(accent)}, 0.3)` : "none",
+        borderRight: ar ? `3px solid rgba(${hexToRgb(accent)}, 0.3)` : "none",
+        paddingLeft: !ar ? 16 : 0,
+        paddingRight: ar ? 16 : 0,
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", margin: 0, flexDirection: "row" }}>
+        <strong style={{ fontSize: 32, fontWeight: 800, color: accent }}><AnimatedNumber value={formattedPrice} /></strong>
+        <span style={{ fontSize: 16, color: accent, fontWeight: 600 }}>{currency === "USD" ? "USD" : (unit || item.currency)}</span>
+        <small style={{ color: "#9b948a", fontSize: 14 }}>{ar ? item.price_label_ar : item.price_label_en}</small>
+        {note && <em style={{ fontSize: 13, color: "#9b948a" }}>{note}</em>}
+        {item.is_featured && (ar ? item.tag_ar : item.tag_en) && (
+          <span style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 1, background: `rgba(${hexToRgb(accent)}, 0.1)`, color: accent, padding: "4px 8px", borderRadius: 4, marginLeft: ar ? 0 : 'auto', marginRight: ar ? 'auto' : 0 }}>
+            {ar ? item.tag_ar : item.tag_en}
+          </span>
+        )}
+      </div>
+
+      <div style={{ margin: 0 }}>
+        <h3 style={{ fontSize: 20, fontWeight: 700, color: "#f0ece4", margin: "0 0 4px 0" }}>{title}</h3>
+        <p style={{ display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden", fontSize: 14, fontWeight: 400, color: "#9b948a", margin: 0 }}>
           {ar ? item.desc_ar : item.desc_en}
         </p>
-        
-
-      </div>
-      
-      <div className="ratecard__price-value">
-        <small>{ar ? item.price_label_ar : item.price_label_en}</small>
-        <strong><AnimatedNumber value={formattedPrice} /></strong>
-        <span>{currency === "USD" ? "USD" : (unit || item.currency)}</span>
-        {note && <em>{note}</em>}
       </div>
     </article>
   );
