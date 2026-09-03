@@ -263,7 +263,7 @@ export default function PricingAdmin() {
             />
           </div>
         ) : (
-          <ResizablePanelGroup direction="horizontal" style={{ height: "100%" }}>
+          <ResizablePanelGroup orientation="horizontal" style={{ height: "100%" }}>
             <ResizablePanel defaultSize={50} minSize={30}>
               <div style={{ height: "100%", paddingRight: 8 }}>
                 <InlinePricingEditor
