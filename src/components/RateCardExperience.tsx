@@ -21,6 +21,12 @@ type RateCardExperienceProps = {
 
 const policies = [
   { icon: "✏️", ar: "تعديلان مجاناً", en: "2 free revisions", value: "2", descAr: "ثم 25 JOD لكل جلسة إضافية", descEn: "Then 25 JOD per extra session" },
+  { icon: "✂️", ar: "نطاق التعديل", en: "Scope of Edits", value: "القص والألوان", descAr: "التعديل لا يشمل تغيير الفكرة أو إعادة التصوير", descEn: "Edits do not include changing core idea or reshoots" },
+  { icon: "⏳", ar: "وقت المراجعة", en: "Feedback Window", value: "7 أيام", descAr: "لإرسال الملاحظات على النسخة الأولية", descEn: "To send feedback after receiving the draft" },
+  { icon: "🚫", ar: "تسليم العمل", en: "Final Delivery", value: "بعد الدفع", descAr: "النسخة النهائية تُسلم بعد سداد كامل المبلغ", descEn: "Final video is delivered after full payment" },
+  { icon: "💾", ar: "الملفات الخام", en: "Raw Footage", value: "+50%", descAr: "لا تُسلم مجاناً، وتُباع بنصف قيمة المشروع", descEn: "Not free, sold at half the project value" },
+  { icon: "🗑️", ar: "حفظ المشاريع", en: "Data Retention", value: "30 يوماً", descAr: "يتم حذف ملفات المشروع بعد 30 يوماً من التسليم", descEn: "Project files are deleted 30 days after delivery" },
+  { icon: "🎵", ar: "الأصول الإضافية", en: "Extra Assets", value: "مستقلة", descAr: "التعليق الصوتي والموسيقى الخاصة تكلفتها منفصلة", descEn: "Voiceovers and licensed music are billed separately" },
   { icon: "📦", ar: "مدة التسليم", en: "Delivery", value: "7–14", descAr: "يوم عمل بعد التصوير", descEn: "working days after wrap" },
   { icon: "⚡", ar: "تسليم مستعجل", en: "Rush delivery", value: "+50%", descAr: "خلال 3 أيام أو أقل", descEn: "within 3 days or less" },
   { icon: "🔧", ar: "المعدات", en: "Equipment", value: "✓", descAr: "مشمولة في سعر التصوير", descEn: "Included in shoot price" },
