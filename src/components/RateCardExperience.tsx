@@ -92,6 +92,61 @@ function AnimatedNumber({ value }: { value: string }) {
   return <>{displayValue}</>;
 }
 
+function ScrambleText({ text }: { text: string }) {
+  const [displayText, setDisplayText] = useState(text);
+  const chars = "!<>-_\\/[]{}—=+*^?#________";
+  
+  useEffect(() => {
+    let frame: number;
+    let iteration = 0;
+    
+    const tick = () => {
+      setDisplayText(text.split("").map((letter, index) => {
+        if (index < iteration) {
+          return text[index];
+        }
+        return chars[Math.floor(Math.random() * chars.length)];
+      }).join(""));
+      
+      if (iteration >= text.length) {
+        cancelAnimationFrame(frame);
+      } else {
+        iteration += 1 / 3;
+        frame = requestAnimationFrame(tick);
+      }
+    };
+    
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [text]);
+  
+  return <span>{displayText}</span>;
+}
+
+function MagneticButton({ children, onClick, className }: { children: React.ReactNode, onClick: () => void, className?: string }) {
+  const ref = useRef<HTMLButtonElement>(null);
+  
+  const handleMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (!ref.current) return;
+    const { left, top, width, height } = ref.current.getBoundingClientRect();
+    const x = (e.clientX - (left + width / 2)) * 0.2;
+    const y = (e.clientY - (top + height / 2)) * 0.2;
+    ref.current.style.transform = `translate(${x}px, ${y}px)`;
+  };
+  
+  const handleMouseLeave = () => {
+    if (ref.current) {
+      ref.current.style.transform = '';
+    }
+  };
+  
+  return (
+    <button ref={ref} onClick={onClick} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave} className={className} style={{ transition: "transform 0.1s ease-out" }}>
+      {children}
+    </button>
+  );
+}
+
 function StaggerItem({ children, delayIndex = 0 }: { children: React.ReactNode, delayIndex?: number }) {
   const [isVisible, setIsVisible] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -130,6 +185,7 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
   const [section, setSection] = useState<string | null>(null);
   const [currency, setCurrency] = useState<"JOD" | "USD">("JOD");
   const [isSticky, setIsSticky] = useState(false);
+  const [showFab, setShowFab] = useState(false);
 
   const rtl = language === "ar";
   
@@ -182,10 +238,23 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
   useEffect(() => {
     const handleScroll = () => {
       setIsSticky(window.scrollY > 150);
+      setShowFab(window.scrollY > 300);
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const handleServicesMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const cards = document.querySelectorAll('.spotlight-card');
+    for (let i = 0; i < cards.length; i++) {
+      const card = cards[i] as HTMLElement;
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      card.style.setProperty('--mouse-x', `${x}px`);
+      card.style.setProperty('--mouse-y', `${y}px`);
+    }
+  };
 
   const visibleItems = useMemo(
     () => items.filter((item) => item.section === section && (item.region === region || item.region === "both") && !item.is_hidden),
@@ -229,7 +298,16 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
       dir={rtl ? "rtl" : "ltr"}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
+      style={{ "--accent-rgb": hexToRgb(currentAccent) } as React.CSSProperties}
     >
+      <div style={{
+        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: -1,
+        background: 'radial-gradient(circle at 50% 50%, rgba(var(--accent-rgb), 0.15), transparent 60%)',
+        filter: 'blur(100px)',
+        pointerEvents: 'none',
+        transition: 'background 1s ease',
+        animation: 'moveGlow 10s ease-in-out infinite'
+      }} />
       {isSticky && step === 3 && region && section && (
         <div style={{ 
           position: "fixed", top: 0, left: 0, right: 0, background: "rgba(10, 10, 10, 0.95)", 
@@ -295,7 +373,7 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
 
       <section className="ratecard__hero">
         <p className="ratecard__eyebrow">CINEMATIC FILMMAKER · JORDAN</p>
-        <h1>{text("قائمة ", "Rate ")}<span>{text("التسعيرات", "Card")}</span></h1>
+        <h1>{text("قائمة ", "Rate ")}<span><ScrambleText text={text("التسعيرات", "Card")} /></span></h1>
         <p>{text("اختر المنطقة والخدمة واعرف السعر فوراً", "Choose your region and service to view pricing")}</p>
         
         {/* Breadcrumb Progress */}
@@ -389,14 +467,37 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
           .ratecard__stage-enter {
             animation: fadeSlideIn 0.4s ease-out forwards;
           }
+          @keyframes moveGlow {
+            0% { transform: translate(-5%, -5%) scale(1); }
+            50% { transform: translate(5%, 5%) scale(1.1); }
+            100% { transform: translate(-5%, -5%) scale(1); }
+          }
+          button:active, .ratecard__region-pill:active, .spotlight-card:active {
+            transform: scale(0.95);
+            transition: transform 0.1s;
+          }
+          .spotlight-card::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: inherit;
+            background: radial-gradient(400px circle at var(--mouse-x) var(--mouse-y), rgba(255,255,255,0.1), transparent 40%);
+            opacity: 0;
+            transition: opacity 500ms;
+            pointer-events: none;
+            z-index: 1;
+          }
+          .ratecard__services:hover .spotlight-card::before {
+            opacity: 1;
+          }
         `}</style>
         <div key={step} className="ratecard__stage-enter">
           {!region && (
           <section className="ratecard__stage">
             <div className="ratecard__section-title"><h2>{text("أين سيتم التصوير؟", "Where will the shoot take place?")}</h2><p>{text("اختر المنطقة لعرض أسعارها فقط", "Choose a region to see its prices only")}</p></div>
             <div className="ratecard__regions">
-              <button onClick={() => chooseRegion("irbid")}><MapPin /><strong>{text("إربد", "Irbid")}</strong><span>{text("شمال الأردن", "Northern Jordan")}</span></button>
-              <button onClick={() => chooseRegion("amman")}><span className="ratecard__city-icon">🏙️</span><strong>{text("عمّان", "Amman")}</strong><span>{text("العاصمة", "The capital")}</span></button>
+              <MagneticButton onClick={() => chooseRegion("irbid")}><MapPin /><strong>{text("إربد", "Irbid")}</strong><span>{text("شمال الأردن", "Northern Jordan")}</span></MagneticButton>
+              <MagneticButton onClick={() => chooseRegion("amman")}><span className="ratecard__city-icon">🏙️</span><strong>{text("عمّان", "Amman")}</strong><span>{text("العاصمة", "The capital")}</span></MagneticButton>
             </div>
           </section>
         )}
@@ -406,7 +507,7 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
             <RegionButton region={region} language={language} onClick={() => setRegion(null)} />
             <div className="ratecard__section-title"><h2>{text("ما الخدمة التي تحتاجها؟", "Which service do you need?")}</h2><p>{text("اضغط على الخدمة لعرض الأسعار", "Select a service to view pricing")}</p></div>
             
-            <div className="ratecard__services" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
+            <div className="ratecard__services" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }} onMouseMove={handleServicesMouseMove}>
               {pricingSections.map((entry) => {
                 const sectionItems = items.filter(item => item.section === entry.key && (item.region === region || item.region === "both") && !item.is_hidden);
                 const itemCount = sectionItems.length;
@@ -427,7 +528,7 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
                       position: "relative",
                       "--hover-text": entryAccent,
                     } as React.CSSProperties}
-                    className="hover:-translate-y-1 group"
+                    className="hover:-translate-y-1 group spotlight-card"
                     onMouseEnter={(e) => { e.currentTarget.style.borderColor = `rgba(${hexToRgb(entryAccent)}, 0.6)`; e.currentTarget.style.background = `rgba(${hexToRgb(entryAccent)}, 0.05)`; }}
                     onMouseLeave={(e) => { e.currentTarget.style.borderColor = `rgba(${hexToRgb(entryAccent)}, 0.2)`; e.currentTarget.style.background = "rgba(255,255,255,0.03)"; }}
                   >
@@ -496,6 +597,22 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
         </div>
       </main>
 
+      {showFab && (
+        <button 
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          style={{
+            position: 'fixed', bottom: 24, right: rtl ? 'auto' : 24, left: rtl ? 24 : 'auto', zIndex: 100,
+            background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(12px)',
+            border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50%',
+            width: 48, height: 48, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#fff', boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+            transition: 'all 0.3s ease'
+          }}
+          className="hover:bg-[rgba(255,255,255,0.2)] hover:scale-110"
+        >
+          ↑
+        </button>
+      )}
     </div>
   );
 }

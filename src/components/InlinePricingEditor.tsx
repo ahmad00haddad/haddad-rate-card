@@ -53,6 +53,54 @@ export function InlinePricingEditor({
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
+  // Tag Suggestions
+  const [focusedTagId, setFocusedTagId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleCmdkSection = (e: CustomEvent<string>) => {
+      setSection(e.detail);
+      setSelectedIds(new Set());
+    };
+    window.addEventListener('cmdk-section', handleCmdkSection as EventListener);
+    return () => window.removeEventListener('cmdk-section', handleCmdkSection as EventListener);
+  }, []);
+
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>, index: number, field: string) => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      const nextIndex = e.key === 'ArrowDown' ? index + 1 : index - 1;
+      const nextInput = document.querySelector(`[data-index="${nextIndex}"][data-field="${field}"]`) as HTMLElement;
+      if (nextInput) {
+        nextInput.focus();
+        if ('select' in nextInput) (nextInput as HTMLInputElement).select();
+      }
+    }
+  };
+
+  const handleNamePaste = (e: React.ClipboardEvent<HTMLInputElement>, id: string) => {
+    const text = e.clipboardData.getData('text');
+    const numMatch = text.match(/\b\d+\b/);
+    if (numMatch) {
+      e.preventDefault();
+      const num = parseInt(numMatch[0], 10);
+      const rest = text.replace(numMatch[0], '').trim();
+      updateField(id, "name_ar", rest);
+      updateField(id, "price_min", num);
+      
+      const priceInput = document.querySelector(`[data-id="price-${id}"]`) as HTMLElement;
+      if (priceInput) {
+        priceInput.style.transition = "none";
+        priceInput.style.boxShadow = "0 0 12px #3ddc97";
+        priceInput.style.backgroundColor = "rgba(61, 220, 151, 0.2)";
+        setTimeout(() => {
+          priceInput.style.transition = "all 0.5s";
+          priceInput.style.boxShadow = "none";
+          priceInput.style.backgroundColor = "transparent";
+        }, 50);
+      }
+    }
+  };
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
@@ -232,9 +280,14 @@ export function InlinePricingEditor({
             
             const descLength = (current.desc_ar || "").length;
             const isDescLong = descLength > 120;
+            const radius = 6;
+            const circumference = 2 * Math.PI * radius;
+            const dashoffset = circumference - Math.min(1, descLength / 120) * circumference;
+            const gaugeColor = descLength > 120 ? "#ef6c6c" : descLength > 100 ? "#f49921" : "#3ddc97";
             
             const isMatch = !searchQuery || current.name_ar?.includes(searchQuery);
             const isSelected = selectedIds.has(item.id);
+            const hasAmmanHint = region === 'irbid' && (current.name_ar?.includes('عمان') || current.name_ar?.includes('عمّان'));
 
             const price = current.price_min || 0;
             let dotColor = "bg-green-500";
@@ -314,12 +367,21 @@ export function InlinePricingEditor({
                           value={current.name_ar} 
                           onChange={(e) => updateField(item.id, "name_ar", e.target.value)}
                           onFocus={() => handleFocus(item.id, "name_ar", "اجعله قصيراً وواضحاً — العميل يقرأه في ثانيتين")}
+                          onKeyDown={(e) => handleInputKeyDown(e, index, "name_ar")}
+                          onPaste={(e) => handleNamePaste(e, item.id)}
+                          data-index={index}
+                          data-field="name_ar"
                           placeholder="اسم البند..."
                           style={{ background: "transparent", border: "1px solid transparent", borderRadius: 4, color: "#f0ece4", fontSize: 18, fontWeight: 700, width: "100%", padding: "4px 8px", transition: "all 0.2s", textDecoration: current.is_hidden ? "line-through" : "none" }}
                           className="hover:border-dashed hover:border-[rgba(244,153,33,0.5)] focus:border-solid focus:border-[#f49921] focus:bg-[#15171a]"
                           title="اضغط للتعديل"
                         />
                         <DiffPreview oldVal={item.name_ar} newVal={draft.name_ar} />
+                        {hasAmmanHint && (
+                          <div style={{ fontSize: 11, color: "#f49921", marginTop: 4, fontWeight: "bold" }}>
+                            💡 ملاحظة: أنت تقوم بالتعديل في قسم إربد.
+                          </div>
+                        )}
                       </div>
                     </div>
                     
@@ -333,6 +395,9 @@ export function InlinePricingEditor({
                         value={current.desc_ar || ""} 
                         onChange={(e) => updateField(item.id, "desc_ar", e.target.value)}
                         onFocus={() => handleFocus(item.id, "desc_ar", "صف ما يحصل عليه العميل، وليس ما تفعله أنت")}
+                        onKeyDown={(e) => handleInputKeyDown(e, index, "desc_ar")}
+                        data-index={index}
+                        data-field="desc_ar"
                         placeholder="الوصف..."
                         rows={2}
                         style={{ background: "transparent", border: "1px solid transparent", borderRadius: 4, color: "#9b948a", fontSize: 14, width: "100%", padding: "6px 8px", resize: "vertical", fontFamily: "inherit", transition: "all 0.2s" }}
@@ -340,11 +405,12 @@ export function InlinePricingEditor({
                         title="اضغط للتعديل"
                       />
                       <DiffPreview oldVal={item.desc_ar} newVal={draft.desc_ar} />
-                      <div style={{ position: "absolute", bottom: -14, right: 8, fontSize: 10, color: isDescLong ? "#ef6c6c" : "#555", display: "flex", alignItems: "center", gap: 4, opacity: 0 }} className="group-focus-within/desc:opacity-100 transition-opacity">
-                        <div style={{ width: 40, height: 2, background: "#333", borderRadius: 2, overflow: "hidden" }}>
-                          <div style={{ width: `${Math.min(100, (descLength / 120) * 100)}%`, height: "100%", background: isDescLong ? "#ef6c6c" : "#3ddc97" }} />
-                        </div>
-                        {descLength}/120
+                      <div style={{ position: "absolute", bottom: -18, right: 8, opacity: 0, display: "flex", alignItems: "center", gap: 4 }} className="group-focus-within/desc:opacity-100 transition-opacity">
+                        <svg width="16" height="16" viewBox="0 0 16 16" style={{ transform: "rotate(-90deg)" }}>
+                          <circle cx="8" cy="8" r={radius} fill="none" stroke="#333" strokeWidth="2" />
+                          <circle cx="8" cy="8" r={radius} fill="none" stroke={gaugeColor} strokeWidth="2" strokeDasharray={circumference} strokeDashoffset={dashoffset} style={{ transition: "stroke-dashoffset 0.2s, stroke 0.2s" }} />
+                        </svg>
+                        <span style={{ fontSize: 10, color: gaugeColor }}>{descLength}/120</span>
                       </div>
                     </div>
 
@@ -359,13 +425,34 @@ export function InlinePricingEditor({
                         <input 
                           value={current.tag_ar || ""} 
                           onChange={(e) => updateField(item.id, "tag_ar", e.target.value)}
-                          onFocus={() => handleFocus(item.id, "tag_ar", "مثال: الأكثر طلباً، جديد، عرض محدود")}
+                          onFocus={() => { handleFocus(item.id, "tag_ar", "مثال: الأكثر طلباً، جديد، عرض محدود"); setFocusedTagId(item.id); }}
+                          onBlur={() => setTimeout(() => setFocusedTagId(null), 200)}
+                          onKeyDown={(e) => handleInputKeyDown(e, index, "tag_ar")}
+                          data-index={index}
+                          data-field="tag_ar"
                           placeholder="مثال: جديد، الأكثر مبيعاً"
                           style={{ background: "transparent", border: "1px dashed rgba(255,255,255,0.2)", borderRadius: 4, color: "#f49921", fontSize: 11, padding: "2px 6px", width: "100%" }}
                           className="focus:border-[#f49921] focus:bg-[#15171a]"
                         />
                       </div>
                       <DiffPreview oldVal={item.tag_ar} newVal={draft.tag_ar} />
+                      {focusedTagId === item.id && (
+                        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, background: "#15171a", border: "1px solid rgba(244,153,33,0.3)", borderRadius: 4, zIndex: 40, display: "flex", flexDirection: "column", marginTop: 4 }}>
+                          {["الأكثر طلباً", "جديد", "عرض محدود", "خصم خاص"].map(tag => (
+                            <div 
+                              key={tag} 
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                updateField(item.id, "tag_ar", tag);
+                                setFocusedTagId(null);
+                              }}
+                              style={{ padding: "4px 8px", fontSize: 11, color: "#f0ece4", cursor: "pointer", borderBottom: "1px solid rgba(255,255,255,0.05)" }}
+                            >
+                              {tag}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                   
@@ -373,6 +460,9 @@ export function InlinePricingEditor({
                     <input 
                       value={current.price_label_ar || ""} 
                       onChange={(e) => updateField(item.id, "price_label_ar", e.target.value)}
+                      onKeyDown={(e) => handleInputKeyDown(e, index, "price_label_ar")}
+                      data-index={index}
+                      data-field="price_label_ar"
                       placeholder="تسمية السعر..."
                       style={{ background: "transparent", border: "1px solid transparent", borderRadius: 4, color: "#9b948a", fontSize: 12, textAlign: "center", width: "100%", padding: "2px 4px", marginBottom: 4, transition: "all 0.2s" }}
                       className="hover:border-dashed hover:border-[rgba(244,153,33,0.5)] focus:border-solid focus:border-[#f49921] focus:bg-[#15171a]"
@@ -386,6 +476,10 @@ export function InlinePricingEditor({
                           type="number"
                           value={current.price_min === null ? "" : current.price_min} 
                           onChange={(e) => updateField(item.id, "price_min", e.target.value === "" ? null : Number(e.target.value))}
+                          onKeyDown={(e) => handleInputKeyDown(e, index, "price_min")}
+                          data-index={index}
+                          data-field="price_min"
+                          data-id={`price-${item.id}`}
                           placeholder="0"
                           style={{ background: "transparent", border: "1px solid transparent", borderRadius: 4, color: "#f49921", fontSize: 26, fontWeight: 800, width: 70, textAlign: "center", padding: "0 4px", transition: "all 0.2s" }}
                           className="hover:border-dashed hover:border-[rgba(244,153,33,0.5)] focus:border-solid focus:border-[#f49921] focus:bg-[#15171a]"
@@ -404,6 +498,9 @@ export function InlinePricingEditor({
                           value={current.price_max === null ? "" : current.price_max} 
                           onChange={(e) => updateField(item.id, "price_max", e.target.value === "" ? null : Number(e.target.value))}
                           onFocus={() => handleFocus(item.id, "price_max", "اتركه فارغاً إذا كان السعر ثابتاً")}
+                          onKeyDown={(e) => handleInputKeyDown(e, index, "price_max")}
+                          data-index={index}
+                          data-field="price_max"
                           placeholder="أعلى"
                           style={{ background: "transparent", border: "1px solid transparent", borderRadius: 4, color: "#f49921", fontSize: 16, fontWeight: 700, width: 60, textAlign: "center", padding: "2px 4px", transition: "all 0.2s" }}
                           className="hover:border-dashed hover:border-[rgba(244,153,33,0.5)] focus:border-solid focus:border-[#f49921] focus:bg-[#15171a]"
@@ -420,6 +517,9 @@ export function InlinePricingEditor({
                     <input 
                       value={current.unit_ar || ""} 
                       onChange={(e) => updateField(item.id, "unit_ar", e.target.value)}
+                      onKeyDown={(e) => handleInputKeyDown(e, index, "unit_ar")}
+                      data-index={index}
+                      data-field="unit_ar"
                       placeholder="الوحدة (JOD)"
                       style={{ background: "transparent", border: "1px solid transparent", borderRadius: 4, color: "#cfc8bd", fontSize: 13, textAlign: "center", width: "100%", padding: "2px 4px", transition: "all 0.2s" }}
                       className="hover:border-dashed hover:border-[rgba(244,153,33,0.5)] focus:border-solid focus:border-[#f49921] focus:bg-[#15171a]"

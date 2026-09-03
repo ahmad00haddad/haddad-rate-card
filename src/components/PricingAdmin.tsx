@@ -59,6 +59,32 @@ export default function PricingAdmin() {
   const [isCompareOpen, setIsCompareOpen] = useState(false);
   const [compareSection, setCompareSection] = useState(pricingSections[0].key);
 
+  // 4. Command Palette State
+  const [cmdkOpen, setCmdkOpen] = useState(false);
+  const [cmdkSearch, setCmdkSearch] = useState("");
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setCmdkOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const cmdkOptions = useMemo(() => {
+    return [
+      ...pricingSections.map(s => ({
+        label: `الانتقال إلى قسم: ${s.ar}`,
+        action: () => window.dispatchEvent(new CustomEvent('cmdk-section', { detail: s.key }))
+      })),
+      { label: 'التبديل إلى عمّان (Amman)', action: () => setMobileTab('amman') },
+      { label: 'التبديل إلى إربد (Irbid)', action: () => setMobileTab('irbid') }
+    ];
+  }, []);
+
   function updateField(id: string, field: keyof PricingItem, value: unknown) {
     setDrafts((old: Record<string, Draft>) => ({ 
       ...old, 
@@ -431,6 +457,44 @@ export default function PricingAdmin() {
                   });
                 })()}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 4. Command Palette */}
+      {cmdkOpen && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", backdropFilter: "blur(4px)", zIndex: 9999, display: "flex", justifyContent: "center", paddingTop: "15vh" }} onClick={() => setCmdkOpen(false)}>
+          <div style={{ background: "#15171a", width: "90%", maxWidth: 500, borderRadius: 12, border: "1px solid #f49921", padding: 16, boxShadow: "0 12px 48px rgba(244,153,33,0.15)", height: "fit-content" }} onClick={e => e.stopPropagation()}>
+            <input 
+              autoFocus
+              placeholder="ابحث عن قسم أو منطقة... (مثال: إربد)"
+              value={cmdkSearch}
+              onChange={e => setCmdkSearch(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Escape') setCmdkOpen(false);
+                if (e.key === 'Enter') {
+                   const match = cmdkOptions.find(o => o.label.toLowerCase().includes(cmdkSearch.toLowerCase()));
+                   if (match) { match.action(); setCmdkOpen(false); }
+                }
+              }}
+              style={{ width: "100%", padding: "12px 16px", background: "#0e0f11", border: "1px solid rgba(244,153,33,0.3)", borderRadius: 8, color: "#f0ece4", marginBottom: 12, outline: "none" }}
+            />
+            <div style={{ maxHeight: 300, overflowY: "auto", display: "flex", flexDirection: "column", gap: 4 }}>
+              {cmdkOptions.filter(o => o.label.toLowerCase().includes(cmdkSearch.toLowerCase())).map((o, i) => (
+                <div 
+                  key={i} 
+                  onClick={() => { o.action(); setCmdkOpen(false); }} 
+                  style={{ padding: "10px 16px", cursor: "pointer", borderRadius: 6, color: "#f0ece4", background: "rgba(255,255,255,0.02)", transition: "background 0.2s" }}
+                  onMouseEnter={e => e.currentTarget.style.background = "rgba(244,153,33,0.1)"}
+                  onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.02)"}
+                >
+                  {o.label}
+                </div>
+              ))}
+              {cmdkOptions.filter(o => o.label.toLowerCase().includes(cmdkSearch.toLowerCase())).length === 0 && (
+                <div style={{ padding: "10px 16px", color: "#555", textAlign: "center" }}>لا توجد نتائج</div>
+              )}
             </div>
           </div>
         </div>
