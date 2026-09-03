@@ -170,8 +170,12 @@ export default function PricingAdmin() {
 
   async function commitDelete(id: string) {
     try {
-      const { error } = await supabase.from("pricing_items").update({ deleted_at: new Date().toISOString() }).eq("id", id);
-      if (error) throw new Error(error.message);
+      await saveFn({
+        data: {
+          id: id,
+          patch: { deleted_at: new Date().toISOString() }
+        }
+      });
       
       const nextDrafts = { ...drafts };
       delete nextDrafts[id];
