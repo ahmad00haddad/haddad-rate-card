@@ -566,7 +566,7 @@ export function InlinePricingEditor({
       {/* Bulk Action Bar */}
       <div 
         className={`bulk-action-bar transition-transform duration-300 ${selectedIds.size > 0 ? "translate-y-0" : "translate-y-full"}`}
-        style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(14,15,17,0.95)", backdropFilter: "blur(8px)", borderTop: "1px solid rgba(244,153,33,0.3)", padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 30, boxShadow: "0 -4px 12px rgba(0,0,0,0.5)" }}
+        style={{ position: "sticky", bottom: 0, left: 0, right: 0, background: "rgba(14,15,17,0.95)", backdropFilter: "blur(8px)", borderTop: "1px solid rgba(244,153,33,0.3)", padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 30, boxShadow: "0 -4px 12px rgba(0,0,0,0.5)", marginTop: "auto" }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <span style={{ display: "flex", alignItems: "center", gap: 6, color: "#f49921", fontWeight: "bold" }}>
