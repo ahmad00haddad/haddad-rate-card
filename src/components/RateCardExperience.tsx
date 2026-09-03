@@ -200,19 +200,6 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
         )}
       </main>
 
-      {!compact && (
-        <a 
-          className="ratecard__whatsapp hover:scale-110 transition-transform" 
-          href="https://wa.me/962799256345" 
-          target="_blank" 
-          rel="noreferrer" 
-          aria-label={text("تواصل معنا عبر واتساب", "Contact us on WhatsApp")}
-          style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", width: "auto", borderRadius: 32 }}
-        >
-          <MessageCircle /> 
-          <span style={{ fontSize: 14, fontWeight: "bold" }}>{text("احصل على عرض سعر", "Get a quote")}</span>
-        </a>
-      )}
     </div>
   );
 }
@@ -241,12 +228,6 @@ function PricingRow({ item, language, currency, region }: { item: PricingItem; l
     formattedPrice = formatPricingAmount(item);
   }
 
-  // WhatsApp Pre-filled message
-  const whatsappMsg = ar 
-    ? `مرحباً أحمد، مهتم بعرض (${title}) في (${regionLabel(region, 'ar')}).`
-    : `Hello Ahmad, I'm interested in the (${title}) package for (${regionLabel(region, 'en')}).`;
-  const whatsappUrl = `https://wa.me/962799256345?text=${encodeURIComponent(whatsappMsg)}`;
-
   return (
     <article className={`ratecard__price-row ${item.is_featured ? "is-featured" : ""}`} style={{ paddingBottom: 24 }}>
       <div className="ratecard__price-copy">
@@ -258,12 +239,7 @@ function PricingRow({ item, language, currency, region }: { item: PricingItem; l
           {ar ? item.desc_ar : item.desc_en}
         </p>
         
-        <Button asChild size="sm" variant="default" style={{ background: "#3ddc97", color: "#000", fontWeight: "bold", marginTop: 16, display: "inline-flex" }}>
-          <a href={whatsappUrl} target="_blank" rel="noreferrer">
-            <MessageCircle size={16} style={{ marginRight: ar ? 0 : 6, marginLeft: ar ? 6 : 0 }} /> 
-            {ar ? "احجز هذا العرض" : "Book this package"}
-          </a>
-        </Button>
+
       </div>
       
       <div className="ratecard__price-value">
