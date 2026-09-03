@@ -113,6 +113,29 @@ export function RateCardExperience({ items, compact = false, initialRegion }: Ra
               {visibleItems.map((item) => <PricingRow key={item.id} item={item} language={language} />)}
               {visibleItems.length === 0 && <div className="ratecard__empty">{text("لا توجد بنود منشورة لهذه الخدمة حالياً.", "No published items for this service yet.")}</div>}
             </div>
+            
+            {section === "reels" && (
+              <div style={{ 
+                marginTop: 16, 
+                padding: "12px 16px", 
+                background: "#15171a", 
+                border: "1px solid rgba(244,153,33,0.3)", 
+                borderRight: rtl ? "3px solid #f49921" : "1px solid rgba(244,153,33,0.3)",
+                borderLeft: !rtl ? "3px solid #f49921" : "1px solid rgba(244,153,33,0.3)",
+                borderRadius: 4, 
+                color: "#f0ece4", 
+                fontSize: 14,
+                display: "flex",
+                alignItems: "center",
+                gap: 8
+              }}>
+                <span>✍️</span>
+                <div>
+                  <strong style={{ color: "#f49921", fontWeight: 700 }}>{text("كتابة السيناريو:", "Scriptwriting:")}</strong> {text("متاحة عبر كاتب خارجي متعاون — 50 إلى 100 JOD إضافية حسب المشروع.", "Available through an external collaborating writer — 50 to 100 JOD additional depending on the project.")}
+                </div>
+              </div>
+            )}
+
             <div className="ratecard__notice"><Check />{text("المعدات الأساسية مشمولة. السعر النهائي يعتمد على تفاصيل المشروع ويمكن التفاوض عليه.", "Core equipment is included. Final pricing depends on project details and can be negotiated.")}</div>
           </section>
         )}
