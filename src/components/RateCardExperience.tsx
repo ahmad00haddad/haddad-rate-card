@@ -30,12 +30,12 @@ const policies = [
 
 const sectionColors: Record<string, string> = {
   reels: '#f49921',
-  films: '#e84393',
-  commercials: '#00b894',
-  docs: '#0984e3',
-  events: '#fd79a8',
-  editing: '#6c5ce7',
-  dayrate: '#fdcb6e',
+  films: '#f49921',
+  commercials: '#f49921',
+  docs: '#f49921',
+  events: '#f49921',
+  editing: '#f49921',
+  dayrate: '#f49921',
 };
 const defaultAccent = '#f49921';
 
