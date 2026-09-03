@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import { ArrowLeft, ArrowRight, Check, MapPin, Wrench, Lock, ShieldCheck } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
@@ -28,11 +28,92 @@ const policies = [
   { icon: "📍", ar: "خارج إربد", en: "Outside Irbid", value: "+", descAr: "رسوم تنقل حسب المسافة", descEn: "Travel fees by distance" },
 ];
 
+const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+
+function AnimatedNumber({ value }: { value: string }) {
+  const [displayValue, setDisplayValue] = useState(value);
+
+  useEffect(() => {
+    const numbers = Array.from(value.matchAll(/\d+/g)).map(m => ({
+      val: parseInt(m[0], 10),
+      index: m.index!,
+      length: m[0].length
+    }));
+    
+    if (numbers.length === 0) {
+      setDisplayValue(value);
+      return;
+    }
+    
+    let startTimestamp: number;
+    const duration = 600;
+    let animationFrameId: number;
+
+    const step = (timestamp: number) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      const ease = easeOutCubic(progress);
+      
+      let newStr = value;
+      for (let i = numbers.length - 1; i >= 0; i--) {
+        const { val, index, length } = numbers[i];
+        const currentVal = Math.round(val * ease);
+        newStr = newStr.substring(0, index) + currentVal + newStr.substring(index + length);
+      }
+      
+      setDisplayValue(newStr);
+      
+      if (progress < 1) {
+        animationFrameId = requestAnimationFrame(step);
+      }
+    };
+    
+    animationFrameId = requestAnimationFrame(step);
+    
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [value]);
+
+  return <>{displayValue}</>;
+}
+
+function StaggerItem({ children, delayIndex = 0 }: { children: React.ReactNode, delayIndex?: number }) {
+  const [isVisible, setIsVisible] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setIsVisible(true);
+        if (ref.current) observer.unobserve(ref.current);
+      }
+    }, { threshold: 0.1 });
+
+    if (ref.current) observer.observe(ref.current);
+
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      style={{
+        opacity: isVisible ? 1 : 0,
+        transform: isVisible ? 'translateY(0)' : 'translateY(20px)',
+        transition: `opacity 400ms ease-out, transform 400ms ease-out`,
+        transitionDelay: `${delayIndex * 80}ms`
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
 export function RateCardExperience({ items, compact = false, initialRegion, isLoading = false }: RateCardExperienceProps) {
   const [language, setLanguage] = useState<PricingLanguage>("ar");
   const [region, setRegion] = useState<Exclude<PricingRegion, "both"> | null>(initialRegion ?? null);
   const [section, setSection] = useState<string | null>(null);
   const [currency, setCurrency] = useState<"JOD" | "USD">("JOD");
+  const [isSticky, setIsSticky] = useState(false);
 
   const rtl = language === "ar";
   
@@ -53,6 +134,14 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
       }
     }
   }, [initialRegion, region, autoDetected]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsSticky(window.scrollY > 150);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const visibleItems = useMemo(
     () => items.filter((item) => item.section === section && (item.region === region || item.region === "both") && !item.is_hidden),
@@ -92,6 +181,23 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
 
   return (
     <div className={`ratecard ${compact ? "ratecard--compact" : ""}`} dir={rtl ? "rtl" : "ltr"}>
+      {isSticky && step === 3 && region && section && (
+        <div style={{ 
+          position: "fixed", top: 0, left: 0, right: 0, background: "rgba(10, 10, 10, 0.95)", 
+          backdropFilter: "blur(12px)", padding: "12px 24px", zIndex: 50, 
+          borderBottom: "1px solid rgba(255,255,255,0.1)", display: "flex", 
+          justifyContent: "center", alignItems: "center", gap: 12, color: "#f0ece4",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.5)"
+        }}>
+          <span style={{ fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+            📍 {regionLabel(region, language)} · <span className="[&>svg]:w-4 [&>svg]:h-4">{currentSection?.icon}</span> {text(currentSection?.ar, currentSection?.en)} · {visibleItems.length} {text("خيارات", "options")}
+          </span>
+          <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} style={{ marginLeft: rtl ? 0 : 'auto', marginRight: rtl ? 'auto' : 0, fontSize: 12, background: "rgba(244,153,33,0.15)", color: "#f49921", padding: "4px 8px", borderRadius: 4, transition: "background 0.2s" }} className="hover:bg-[rgba(244,153,33,0.25)]">
+            {text("العودة للأعلى ↑", "Back to top ↑")}
+          </button>
+        </div>
+      )}
+
       <header className="ratecard__header">
         <div className="ratecard__brand">
           <strong>{text("أحمد حداد", "Ahmad Haddad")}</strong>
@@ -140,25 +246,42 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
             <div className="ratecard__section-title"><h2>{text("ما الخدمة التي تحتاجها؟", "Which service do you need?")}</h2><p>{text("اضغط على الخدمة لعرض الأسعار", "Select a service to view pricing")}</p></div>
             
             <div className="ratecard__services" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
-              {pricingSections.map((entry) => (
-                <button 
-                  key={entry.key} 
-                  onClick={() => chooseSection(entry.key)}
-                  style={{
-                    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, padding: "32px 16px",
-                    background: "rgba(255,255,255,0.03)", border: "1px solid rgba(244,153,33,0.2)", borderRadius: 12, transition: "all 0.3s ease",
-                  }}
-                  className="hover:bg-[rgba(244,153,33,0.1)] hover:-translate-y-1 group"
-                >
-                  <span className="text-[#9b948a] group-hover:text-[#f49921] transition-colors [&>svg]:w-10 [&>svg]:h-10">
-                    {entry.icon}
-                  </span>
-                  <div style={{ textAlign: "center" }}>
-                    <strong style={{ display: "block", fontSize: 18, color: "#f0ece4" }} className="group-hover:text-white transition-colors">{text(entry.ar, entry.en)}</strong>
-                    <small style={{ color: "#9b948a", fontSize: 13 }} className="group-hover:text-[#f49921] transition-colors">{entry.en}</small>
-                  </div>
-                </button>
-              ))}
+              {pricingSections.map((entry) => {
+                const sectionItems = items.filter(item => item.section === entry.key && (item.region === region || item.region === "both") && !item.is_hidden);
+                const itemCount = sectionItems.length;
+                const minPrice = Math.min(...sectionItems.map(i => i.price_min ?? Infinity).filter(p => p !== Infinity));
+                const minPriceStr = minPrice !== Infinity ? `${minPrice} ${currency}` : "";
+
+                const previewAr = `${itemCount} خيارات ${minPriceStr ? `· من ${minPriceStr}` : ""}`;
+                const previewEn = `${itemCount} options ${minPriceStr ? `· from ${minPriceStr}` : ""}`;
+
+                return (
+                  <button 
+                    key={entry.key} 
+                    onClick={() => chooseSection(entry.key)}
+                    style={{
+                      display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, padding: "32px 16px",
+                      background: "rgba(255,255,255,0.03)", border: "1px solid rgba(244,153,33,0.2)", borderRadius: 12, transition: "all 0.3s ease",
+                      position: "relative"
+                    }}
+                    className="hover:bg-[rgba(244,153,33,0.1)] hover:-translate-y-1 group"
+                  >
+                    <span className="text-[#9b948a] group-hover:text-[#f49921] transition-colors [&>svg]:w-10 [&>svg]:h-10">
+                      {entry.icon}
+                    </span>
+                    <div style={{ textAlign: "center" }}>
+                      <strong style={{ display: "block", fontSize: 18, color: "#f0ece4" }} className="group-hover:text-white transition-colors">{text(entry.ar, entry.en)}</strong>
+                      <small style={{ color: "#9b948a", fontSize: 13 }} className="group-hover:text-[#f49921] transition-colors">{entry.en}</small>
+                    </div>
+                    {/* Hover preview */}
+                    <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 absolute -bottom-4 left-0 right-0 flex justify-center translate-y-2 group-hover:translate-y-0" style={{ pointerEvents: 'none', zIndex: 10 }}>
+                      <span style={{ fontSize: 12, color: "#f49921", background: "#15171a", border: "1px solid rgba(244,153,33,0.3)", padding: "4px 10px", borderRadius: 12, whiteSpace: "nowrap", boxShadow: "0 4px 6px rgba(0,0,0,0.3)" }}>
+                        {text(previewAr, previewEn)}
+                      </span>
+                    </div>
+                  </button>
+                )
+              })}
             </div>
             {!compact && <PolicyStrip language={language} />}
           </section>
@@ -180,7 +303,11 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
             </div>
             
             <div className="ratecard__pricing-list">
-              {visibleItems.map((item) => <PricingRow key={item.id} item={item} language={language} currency={currency} region={region} />)}
+              {visibleItems.map((item, index) => (
+                <StaggerItem key={item.id} delayIndex={index}>
+                  <PricingRow item={item} language={language} currency={currency} region={region} />
+                </StaggerItem>
+              ))}
               {visibleItems.length === 0 && <div className="ratecard__empty">{text("لا توجد بنود منشورة لهذه الخدمة حالياً.", "No published items for this service yet.")}</div>}
             </div>
             
@@ -247,7 +374,7 @@ function PricingRow({ item, language, currency, region }: { item: PricingItem; l
       
       <div className="ratecard__price-value">
         <small>{ar ? item.price_label_ar : item.price_label_en}</small>
-        <strong>{formattedPrice}</strong>
+        <strong><AnimatedNumber value={formattedPrice} /></strong>
         <span>{currency === "USD" ? "USD" : (unit || item.currency)}</span>
         {note && <em>{note}</em>}
       </div>
@@ -257,5 +384,43 @@ function PricingRow({ item, language, currency, region }: { item: PricingItem; l
 
 function PolicyStrip({ language }: { language: PricingLanguage }) {
   const ar = language === "ar";
-  return <section className="ratecard__policies"><h2>{ar ? "السياسات والشروط" : "Policies & terms"}</h2><div>{policies.map((policy) => <article key={policy.en}><span>{policy.icon}</span><h3>{ar ? policy.ar : policy.en}</h3><strong>{policy.value}</strong><p>{ar ? policy.descAr : policy.descEn}</p></article>)}</div></section>;
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <section 
+      className="ratecard__policies" 
+      style={{ marginTop: 32, padding: isOpen ? 24 : 16, background: "rgba(255,255,255,0.02)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.05)", cursor: "pointer", transition: "all 0.3s ease" }} 
+      onClick={() => setIsOpen(!isOpen)}
+    >
+      {!isOpen ? (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", color: "#f0ece4", fontSize: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <span>📋</span> 
+            <strong>{ar ? "السياسات:" : "Policies:"}</strong> 
+            <span style={{ opacity: 0.8 }}>
+              {ar ? "تعديلان مجاناً · التسليم 7-14 يوم · المعدات مشمولة" : "2 free revisions · Delivery 7-14 days · Equipment included"}
+            </span>
+          </div>
+          <span style={{ color: "#f49921", fontSize: 13, whiteSpace: "nowrap", marginLeft: 16 }}>{ar ? "عرض التفاصيل ↓" : "View details ↓"}</span>
+        </div>
+      ) : (
+        <div style={{ opacity: 1, transition: "opacity 0.3s ease" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+            <h2 style={{ margin: 0, fontSize: 18, color: '#f0ece4' }}>{ar ? "السياسات والشروط" : "Policies & terms"}</h2>
+            <span style={{ color: "#f49921", fontSize: 13, padding: "4px 8px", background: "rgba(244,153,33,0.1)", borderRadius: 4 }}>{ar ? "إخفاء ↑" : "Hide ↑"}</span>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
+            {policies.map((policy) => (
+              <article key={policy.en} style={{ padding: 16, background: "rgba(255,255,255,0.03)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.05)" }}>
+                <span style={{ display: "block", fontSize: 24, marginBottom: 8 }}>{policy.icon}</span>
+                <h3 style={{ margin: "0 0 4px 0", fontSize: 15, color: "#f0ece4" }}>{ar ? policy.ar : policy.en}</h3>
+                <strong style={{ display: "block", color: "#f49921", marginBottom: 4 }}>{policy.value}</strong>
+                <p style={{ margin: 0, fontSize: 13, color: "#9b948a", lineHeight: 1.5 }}>{ar ? policy.descAr : policy.descEn}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      )}
+    </section>
+  );
 }
