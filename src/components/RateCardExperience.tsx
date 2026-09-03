@@ -705,9 +705,8 @@ function PolicyStrip({ language }: { language: PricingLanguage }) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <section 
-      className="ratecard__policies" 
-      style={{ marginTop: 32, padding: isOpen ? 24 : 16, background: "rgba(255,255,255,0.02)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.05)", cursor: "pointer", transition: "all 0.3s ease" }} 
+    <div 
+      style={{ display: "block", marginTop: 32, padding: isOpen ? 24 : 16, background: "rgba(255,255,255,0.02)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.05)", cursor: "pointer", transition: "all 0.3s ease" }} 
       onClick={() => setIsOpen(!isOpen)}
     >
       {!isOpen ? (
@@ -739,6 +738,6 @@ function PolicyStrip({ language }: { language: PricingLanguage }) {
           </div>
         </div>
       )}
-    </section>
+    </div>
   );
 }
