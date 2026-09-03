@@ -7,15 +7,18 @@ export type PricingLanguage = "ar" | "en";
 export const pricingQueryKey = ["pricing-items"] as const;
 export const PRICING_CHANNEL = "ah-pricing-updates";
 
+import { Smartphone, Film, MonitorPlay, Clapperboard, Mic, Scissors, Calendar } from "lucide-react";
+import React from "react";
+
 export const pricingSections = [
-  { key: "reels", icon: "📱", ar: "ريلز انستاجرام", en: "Instagram Reels" },
-  { key: "films", icon: "🎞", ar: "أفلام قصيرة", en: "Short Films" },
-  { key: "commercials", icon: "📺", ar: "إعلانات", en: "Commercials" },
-  { key: "docs", icon: "🎙", ar: "وثائقيات", en: "Documentaries" },
-  { key: "events", icon: "🎤", ar: "إيفنتات / بودكاست", en: "Events / Podcast" },
-  { key: "editing", icon: "✂️", ar: "مونتاج وتلوين", en: "Editing & Color" },
-  { key: "dayrate", icon: "📅", ar: "اليومية", en: "Day Rate" },
-] as const;
+  { key: "reels", icon: <Smartphone />, ar: "ريلز انستاجرام", en: "Instagram Reels" },
+  { key: "films", icon: <Film />, ar: "أفلام قصيرة", en: "Short Films" },
+  { key: "commercials", icon: <MonitorPlay />, ar: "إعلانات", en: "Commercials" },
+  { key: "docs", icon: <Clapperboard />, ar: "وثائقيات", en: "Documentaries" },
+  { key: "events", icon: <Mic />, ar: "إيفنتات / بودكاست", en: "Events / Podcast" },
+  { key: "editing", icon: <Scissors />, ar: "مونتاج وتلوين", en: "Editing & Color" },
+  { key: "dayrate", icon: <Calendar />, ar: "اليومية", en: "Day Rate" },
+];
 
 export function formatPricingAmount(item: PricingItem) {
   if (item.price_min != null) {

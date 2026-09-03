@@ -89,6 +89,9 @@ export function InlinePricingEditor({
               key={entry.key}
               onClick={() => setSection(entry.key)}
               style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
                 background: section === entry.key ? "#f49921" : "transparent",
                 color: section === entry.key ? "#000" : "#f0ece4",
                 border: "1px solid #f49921",
@@ -101,7 +104,7 @@ export function InlinePricingEditor({
                 transition: "all 0.2s"
               }}
             >
-              {entry.icon} {entry.ar}
+              <span className="[&>svg]:w-4 [&>svg]:h-4">{entry.icon}</span> {entry.ar}
             </button>
           ))}
         </div>
@@ -109,7 +112,10 @@ export function InlinePricingEditor({
 
       <main className="ratecard__main" style={{ padding: 16, flex: 1, display: "flex", flexDirection: "column" }}>
         <div className="ratecard__section-title" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-          <h2 style={{ fontSize: 20, margin: 0, display: "flex", gap: 8, alignItems: "center", color: "#f0ece4" }}>{currentSection?.icon} {currentSection?.ar}</h2>
+          <h2 style={{ fontSize: 20, margin: 0, display: "flex", gap: 8, alignItems: "center", color: "#f0ece4" }}>
+            <span style={{ color: "#f49921" }} className="[&>svg]:w-5 [&>svg]:h-5">{currentSection?.icon}</span>
+            {currentSection?.ar}
+          </h2>
           <Button size="sm" onClick={() => onCreateNew(section, region)} style={{ background: "#f49921", color: "#000", fontWeight: "bold" }}>
             <Plus size={16} style={{ marginLeft: 4 }} /> إضافة بند
           </Button>

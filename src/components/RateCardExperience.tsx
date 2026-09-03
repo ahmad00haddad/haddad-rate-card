@@ -144,12 +144,14 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
                     display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, padding: "32px 16px",
                     background: "rgba(255,255,255,0.03)", border: "1px solid rgba(244,153,33,0.2)", borderRadius: 12, transition: "all 0.3s ease",
                   }}
-                  className="hover:bg-[rgba(244,153,33,0.1)] hover:-translate-y-1"
+                  className="hover:bg-[rgba(244,153,33,0.1)] hover:-translate-y-1 group"
                 >
-                  <span style={{ fontSize: 36 }}>{entry.icon}</span>
+                  <span className="text-[#9b948a] group-hover:text-[#f49921] transition-colors [&>svg]:w-10 [&>svg]:h-10">
+                    {entry.icon}
+                  </span>
                   <div style={{ textAlign: "center" }}>
-                    <strong style={{ display: "block", fontSize: 18, color: "#f0ece4" }}>{text(entry.ar, entry.en)}</strong>
-                    <small style={{ color: "#9b948a", fontSize: 13 }}>{entry.en}</small>
+                    <strong style={{ display: "block", fontSize: 18, color: "#f0ece4" }} className="group-hover:text-white transition-colors">{text(entry.ar, entry.en)}</strong>
+                    <small style={{ color: "#9b948a", fontSize: 13 }} className="group-hover:text-[#f49921] transition-colors">{entry.en}</small>
                   </div>
                 </button>
               ))}
@@ -166,7 +168,10 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
             <RegionButton region={region} language={language} onClick={() => { setRegion(null); setSection(null); }} />
             
             <div className="ratecard__section-title" style={{ marginTop: 24 }}>
-              <h2>{currentSection?.icon} {text(currentSection?.ar ?? "", currentSection?.en ?? "")}</h2>
+              <h2 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: '#f0ece4' }}>
+                <span style={{ color: '#f49921' }} className="[&>svg]:w-7 [&>svg]:h-7">{currentSection?.icon}</span>
+                {text(currentSection?.ar ?? "", currentSection?.en ?? "")}
+              </h2>
               <p>{text("الأسعار التالية خاصة بالمنطقة المختارة", "Pricing for your selected region")}</p>
             </div>
             
