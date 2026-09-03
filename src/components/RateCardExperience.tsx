@@ -7,6 +7,7 @@ import {
   formatPricingAmount,
   pricingSections,
   regionLabel,
+  formatPricingAmount,
   type PricingItem,
   type PricingLanguage,
   type PricingRegion,
