@@ -215,11 +215,11 @@ export function InlinePricingEditor({
   };
 
   return (
-    <div className="ratecard ratecard--compact" dir="rtl" style={{ height: "100%", overflowY: "auto", border: "1px solid rgba(244,153,33,0.2)", borderRadius: 8, background: "#0e0f11", display: "flex", flexDirection: "column", position: "relative" }} onKeyDown={handleKeyDown}>
-      <header className="ratecard__header" style={{ position: "sticky", top: 0, zIndex: 20, background: "rgba(14,15,17,0.95)", backdropFilter: "blur(8px)", borderBottom: "1px solid rgba(244,153,33,0.15)" }}>
+    <div className="ratecard ratecard--compact" dir="rtl" style={{ height: "100%", overflowY: "auto", border: "1px solid rgba(183,37,52,0.2)", borderRadius: 8, background: "#0e0e0e", display: "flex", flexDirection: "column", position: "relative" }} onKeyDown={handleKeyDown}>
+      <header className="ratecard__header" style={{ position: "sticky", top: 0, zIndex: 20, background: "rgba(14,15,17,0.95)", backdropFilter: "blur(8px)", borderBottom: "1px solid rgba(183,37,52,0.15)" }}>
         <div className="ratecard__brand">
           <strong style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <MapPin size={16} color="#f49921" /> {regionLabel(region, "ar")}
+            <MapPin size={16} color="#b72534" /> {regionLabel(region, "ar")}
           </strong>
         </div>
         <div className="ratecard__services" style={{ display: "flex", gap: 8, padding: "12px 16px", overflowX: "auto" }}>
@@ -231,9 +231,9 @@ export function InlinePricingEditor({
                 display: "flex",
                 alignItems: "center",
                 gap: 6,
-                background: section === entry.key ? "#f49921" : "transparent",
-                color: section === entry.key ? "#000" : "#f0ece4",
-                border: "1px solid #f49921",
+                background: section === entry.key ? "#b72534" : "transparent",
+                color: section === entry.key ? "#000" : "#f2e4d4",
+                border: "1px solid #b72534",
                 padding: "6px 12px",
                 borderRadius: 6,
                 cursor: "pointer",
@@ -249,13 +249,13 @@ export function InlinePricingEditor({
         </div>
         <div style={{ padding: "0 16px 12px 16px" }}>
           <div style={{ position: "relative" }}>
-            <Search size={16} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", color: "#9b948a" }} />
+            <Search size={16} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", color: "#bdb3a0" }} />
             <input 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="ابحث عن بند..."
-              style={{ background: "#15171a", border: "1px solid rgba(244,153,33,0.3)", borderRadius: 6, color: "#f0ece4", fontSize: 14, width: "100%", padding: "8px 12px 8px 36px", paddingRight: 36 }}
-              className="focus:border-[#f49921] outline-none"
+              style={{ background: "#161616", border: "1px solid rgba(183,37,52,0.3)", borderRadius: 6, color: "#f2e4d4", fontSize: 14, width: "100%", padding: "8px 12px 8px 36px", paddingRight: 36 }}
+              className="focus:border-[#b72534] outline-none"
             />
           </div>
         </div>
@@ -263,11 +263,11 @@ export function InlinePricingEditor({
 
       <main className="ratecard__main" style={{ padding: 16, flex: 1, display: "flex", flexDirection: "column" }}>
         <div className="ratecard__section-title" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-          <h2 style={{ fontSize: 20, margin: 0, display: "flex", gap: 8, alignItems: "center", color: "#f0ece4" }}>
-            <span style={{ color: "#f49921" }} className="[&>svg]:w-5 [&>svg]:h-5">{currentSection?.icon}</span>
+          <h2 style={{ fontSize: 20, margin: 0, display: "flex", gap: 8, alignItems: "center", color: "#f2e4d4" }}>
+            <span style={{ color: "#b72534" }} className="[&>svg]:w-5 [&>svg]:h-5">{currentSection?.icon}</span>
             {currentSection?.ar}
           </h2>
-          <Button size="sm" onClick={() => onCreateNew(section, region)} style={{ background: "#f49921", color: "#000", fontWeight: "bold" }}>
+          <Button size="sm" onClick={() => onCreateNew(section, region)} style={{ background: "#b72534", color: "#000", fontWeight: "bold" }}>
             <Plus size={16} style={{ marginLeft: 4 }} /> إضافة بند
           </Button>
         </div>
@@ -283,7 +283,7 @@ export function InlinePricingEditor({
             const radius = 6;
             const circumference = 2 * Math.PI * radius;
             const dashoffset = circumference - Math.min(1, descLength / 120) * circumference;
-            const gaugeColor = descLength > 120 ? "#ef6c6c" : descLength > 100 ? "#f49921" : "#3ddc97";
+            const gaugeColor = descLength > 120 ? "#ef6c6c" : descLength > 100 ? "#b72534" : "#3ddc97";
             
             const isMatch = !searchQuery || current.name_ar?.includes(searchQuery);
             const isSelected = selectedIds.has(item.id);
@@ -327,10 +327,10 @@ export function InlinePricingEditor({
                 }}
               >
                 {isBoth && (
-                  <div style={{ background: "rgba(244,153,33,0.1)", color: "#f49921", padding: "8px 12px", fontSize: 12, borderRadius: "8px 8px 0 0", display: "flex", justifyContent: "space-between", alignItems: "center", border: "1px solid rgba(244,153,33,0.3)", borderBottom: "none" }}>
+                  <div style={{ background: "rgba(183,37,52,0.1)", color: "#b72534", padding: "8px 12px", fontSize: 12, borderRadius: "8px 8px 0 0", display: "flex", justifyContent: "space-between", alignItems: "center", border: "1px solid rgba(183,37,52,0.3)", borderBottom: "none" }}>
                     <span style={{ display: "flex", alignItems: "center", gap: 6 }}><AlertTriangle size={14} /> هذا البند مشترك. تعديله سيؤثر على المنطقتين.</span>
                     {onSplit && (
-                      <Button size="sm" variant="outline" style={{ height: 26, fontSize: 11, borderColor: "#f49921", color: "#f49921", transition: "all 0.3s" }} onClick={() => onSplit(item)} className="hover:bg-[#f49921] hover:text-[#000]">
+                      <Button size="sm" variant="outline" style={{ height: 26, fontSize: 11, borderColor: "#b72534", color: "#b72534", transition: "all 0.3s" }} onClick={() => onSplit(item)} className="hover:bg-[#b72534] hover:text-[#000]">
                         <SplitSquareHorizontal size={14} style={{ marginLeft: 6 }} /> فصل إربد عن عمّان
                       </Button>
                     )}
@@ -344,14 +344,14 @@ export function InlinePricingEditor({
                     borderTopLeftRadius: isBoth ? 0 : undefined, 
                     borderTopRightRadius: isBoth ? 0 : undefined, 
                     position: "relative",
-                    border: isSelected ? "1px solid #f49921" : "1px solid rgba(244,153,33,0.1)",
-                    boxShadow: isSelected ? "0 0 8px rgba(244,153,33,0.4)" : "none",
-                    borderTop: dragOverIndex === index && draggedIndex !== null && draggedIndex > index ? "2px solid #f49921" : (isSelected ? "1px solid #f49921" : "1px solid rgba(244,153,33,0.1)"),
-                    borderBottom: dragOverIndex === index && draggedIndex !== null && draggedIndex < index ? "2px solid #f49921" : (isSelected ? "1px solid #f49921" : "1px solid rgba(244,153,33,0.1)"),
+                    border: isSelected ? "1px solid #b72534" : "1px solid rgba(183,37,52,0.1)",
+                    boxShadow: isSelected ? "0 0 8px rgba(183,37,52,0.4)" : "none",
+                    borderTop: dragOverIndex === index && draggedIndex !== null && draggedIndex > index ? "2px solid #b72534" : (isSelected ? "1px solid #b72534" : "1px solid rgba(183,37,52,0.1)"),
+                    borderBottom: dragOverIndex === index && draggedIndex !== null && draggedIndex < index ? "2px solid #b72534" : (isSelected ? "1px solid #b72534" : "1px solid rgba(183,37,52,0.1)"),
                   }}
                 >
                   <div style={{ position: "absolute", right: -24, top: "50%", transform: "translateY(-50%)", zIndex: 10, cursor: "grab" }} className="opacity-0 group-hover:opacity-100 transition-opacity">
-                    <GripVertical size={20} color="#f49921" />
+                    <GripVertical size={20} color="#b72534" />
                   </div>
 
                   <div className="ratecard__price-copy" style={{ flex: 1, position: "relative", zIndex: 2 }}>
@@ -359,7 +359,7 @@ export function InlinePricingEditor({
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
                       <div className="relative w-full group/input">
                         {activeHint?.id === item.id && activeHint?.field === 'name_ar' && (
-                          <div style={{ position: "absolute", top: -28, right: 0, background: "#f49921", color: "#000", padding: "4px 8px", borderRadius: 4, fontSize: 11, fontWeight: "bold", zIndex: 30, whiteSpace: "nowrap" }}>
+                          <div style={{ position: "absolute", top: -28, right: 0, background: "#b72534", color: "#000", padding: "4px 8px", borderRadius: 4, fontSize: 11, fontWeight: "bold", zIndex: 30, whiteSpace: "nowrap" }}>
                             {activeHint.message}
                           </div>
                         )}
@@ -372,13 +372,13 @@ export function InlinePricingEditor({
                           data-index={index}
                           data-field="name_ar"
                           placeholder="اسم البند..."
-                          style={{ background: "transparent", border: "1px solid transparent", borderRadius: 4, color: "#f0ece4", fontSize: 18, fontWeight: 700, width: "100%", padding: "4px 8px", transition: "all 0.2s", textDecoration: current.is_hidden ? "line-through" : "none" }}
-                          className="hover:border-dashed hover:border-[rgba(244,153,33,0.5)] focus:border-solid focus:border-[#f49921] focus:bg-[#15171a]"
+                          style={{ background: "transparent", border: "1px solid transparent", borderRadius: 4, color: "#f2e4d4", fontSize: 18, fontWeight: 700, width: "100%", padding: "4px 8px", transition: "all 0.2s", textDecoration: current.is_hidden ? "line-through" : "none" }}
+                          className="hover:border-dashed hover:border-[rgba(183,37,52,0.5)] focus:border-solid focus:border-[#b72534] focus:bg-[#161616]"
                           title="اضغط للتعديل"
                         />
                         <DiffPreview oldVal={item.name_ar} newVal={draft.name_ar} />
                         {hasAmmanHint && (
-                          <div style={{ fontSize: 11, color: "#f49921", marginTop: 4, fontWeight: "bold" }}>
+                          <div style={{ fontSize: 11, color: "#b72534", marginTop: 4, fontWeight: "bold" }}>
                             💡 ملاحظة: أنت تقوم بالتعديل في قسم إربد.
                           </div>
                         )}
@@ -387,7 +387,7 @@ export function InlinePricingEditor({
                     
                     <div className="relative w-full group/desc mb-3">
                       {activeHint?.id === item.id && activeHint?.field === 'desc_ar' && (
-                        <div style={{ position: "absolute", top: -28, right: 0, background: "#f49921", color: "#000", padding: "4px 8px", borderRadius: 4, fontSize: 11, fontWeight: "bold", zIndex: 30, whiteSpace: "nowrap" }}>
+                        <div style={{ position: "absolute", top: -28, right: 0, background: "#b72534", color: "#000", padding: "4px 8px", borderRadius: 4, fontSize: 11, fontWeight: "bold", zIndex: 30, whiteSpace: "nowrap" }}>
                           {activeHint.message}
                         </div>
                       )}
@@ -400,8 +400,8 @@ export function InlinePricingEditor({
                         data-field="desc_ar"
                         placeholder="الوصف..."
                         rows={2}
-                        style={{ background: "transparent", border: "1px solid transparent", borderRadius: 4, color: "#9b948a", fontSize: 14, width: "100%", padding: "6px 8px", resize: "vertical", fontFamily: "inherit", transition: "all 0.2s" }}
-                        className="hover:border-dashed hover:border-[rgba(244,153,33,0.5)] focus:border-solid focus:border-[#f49921] focus:bg-[#15171a]"
+                        style={{ background: "transparent", border: "1px solid transparent", borderRadius: 4, color: "#bdb3a0", fontSize: 14, width: "100%", padding: "6px 8px", resize: "vertical", fontFamily: "inherit", transition: "all 0.2s" }}
+                        className="hover:border-dashed hover:border-[rgba(183,37,52,0.5)] focus:border-solid focus:border-[#b72534] focus:bg-[#161616]"
                         title="اضغط للتعديل"
                       />
                       <DiffPreview oldVal={item.desc_ar} newVal={draft.desc_ar} />
@@ -416,12 +416,12 @@ export function InlinePricingEditor({
 
                     <div className="relative w-1/2 group/badge mt-4">
                       {activeHint?.id === item.id && activeHint?.field === 'tag_ar' && (
-                        <div style={{ position: "absolute", top: -28, right: 0, background: "#f49921", color: "#000", padding: "4px 8px", borderRadius: 4, fontSize: 11, fontWeight: "bold", zIndex: 30, whiteSpace: "nowrap" }}>
+                        <div style={{ position: "absolute", top: -28, right: 0, background: "#b72534", color: "#000", padding: "4px 8px", borderRadius: 4, fontSize: 11, fontWeight: "bold", zIndex: 30, whiteSpace: "nowrap" }}>
                           {activeHint.message}
                         </div>
                       )}
                       <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                        <span style={{ fontSize: 11, color: "#9b948a" }}>الشارة:</span>
+                        <span style={{ fontSize: 11, color: "#bdb3a0" }}>الشارة:</span>
                         <input 
                           value={current.tag_ar || ""} 
                           onChange={(e) => updateField(item.id, "tag_ar", e.target.value)}
@@ -431,13 +431,13 @@ export function InlinePricingEditor({
                           data-index={index}
                           data-field="tag_ar"
                           placeholder="مثال: جديد، الأكثر مبيعاً"
-                          style={{ background: "transparent", border: "1px dashed rgba(255,255,255,0.2)", borderRadius: 4, color: "#f49921", fontSize: 11, padding: "2px 6px", width: "100%" }}
-                          className="focus:border-[#f49921] focus:bg-[#15171a]"
+                          style={{ background: "transparent", border: "1px dashed rgba(255,255,255,0.2)", borderRadius: 4, color: "#b72534", fontSize: 11, padding: "2px 6px", width: "100%" }}
+                          className="focus:border-[#b72534] focus:bg-[#161616]"
                         />
                       </div>
                       <DiffPreview oldVal={item.tag_ar} newVal={draft.tag_ar} />
                       {focusedTagId === item.id && (
-                        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, background: "#15171a", border: "1px solid rgba(244,153,33,0.3)", borderRadius: 4, zIndex: 40, display: "flex", flexDirection: "column", marginTop: 4 }}>
+                        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, background: "#161616", border: "1px solid rgba(183,37,52,0.3)", borderRadius: 4, zIndex: 40, display: "flex", flexDirection: "column", marginTop: 4 }}>
                           {["الأكثر طلباً", "جديد", "عرض محدود", "خصم خاص"].map(tag => (
                             <div 
                               key={tag} 
@@ -446,7 +446,7 @@ export function InlinePricingEditor({
                                 updateField(item.id, "tag_ar", tag);
                                 setFocusedTagId(null);
                               }}
-                              style={{ padding: "4px 8px", fontSize: 11, color: "#f0ece4", cursor: "pointer", borderBottom: "1px solid rgba(255,255,255,0.05)" }}
+                              style={{ padding: "4px 8px", fontSize: 11, color: "#f2e4d4", cursor: "pointer", borderBottom: "1px solid rgba(255,255,255,0.05)" }}
                             >
                               {tag}
                             </div>
@@ -464,8 +464,8 @@ export function InlinePricingEditor({
                       data-index={index}
                       data-field="price_label_ar"
                       placeholder="تسمية السعر..."
-                      style={{ background: "transparent", border: "1px solid transparent", borderRadius: 4, color: "#9b948a", fontSize: 12, textAlign: "center", width: "100%", padding: "2px 4px", marginBottom: 4, transition: "all 0.2s" }}
-                      className="hover:border-dashed hover:border-[rgba(244,153,33,0.5)] focus:border-solid focus:border-[#f49921] focus:bg-[#15171a]"
+                      style={{ background: "transparent", border: "1px solid transparent", borderRadius: 4, color: "#bdb3a0", fontSize: 12, textAlign: "center", width: "100%", padding: "2px 4px", marginBottom: 4, transition: "all 0.2s" }}
+                      className="hover:border-dashed hover:border-[rgba(183,37,52,0.5)] focus:border-solid focus:border-[#b72534] focus:bg-[#161616]"
                     />
                     <DiffPreview oldVal={item.price_label_ar} newVal={draft.price_label_ar} />
                     
@@ -481,15 +481,15 @@ export function InlinePricingEditor({
                           data-field="price_min"
                           data-id={`price-${item.id}`}
                           placeholder="0"
-                          style={{ background: "transparent", border: "1px solid transparent", borderRadius: 4, color: "#f49921", fontSize: 26, fontWeight: 800, width: 70, textAlign: "center", padding: "0 4px", transition: "all 0.2s" }}
-                          className="hover:border-dashed hover:border-[rgba(244,153,33,0.5)] focus:border-solid focus:border-[#f49921] focus:bg-[#15171a]"
+                          style={{ background: "transparent", border: "1px solid transparent", borderRadius: 4, color: "#b72534", fontSize: 26, fontWeight: 800, width: 70, textAlign: "center", padding: "0 4px", transition: "all 0.2s" }}
+                          className="hover:border-dashed hover:border-[rgba(183,37,52,0.5)] focus:border-solid focus:border-[#b72534] focus:bg-[#161616]"
                         />
                         <DiffPreview oldVal={item.price_min} newVal={draft.price_min} />
                       </div>
-                      <span style={{ color: "#f49921", fontWeight: "bold" }}>-</span>
+                      <span style={{ color: "#b72534", fontWeight: "bold" }}>-</span>
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
                         {activeHint?.id === item.id && activeHint?.field === 'price_max' && (
-                          <div style={{ position: "absolute", top: -28, right: "50%", transform: "translateX(50%)", background: "#f49921", color: "#000", padding: "4px 8px", borderRadius: 4, fontSize: 11, fontWeight: "bold", zIndex: 30, whiteSpace: "nowrap" }}>
+                          <div style={{ position: "absolute", top: -28, right: "50%", transform: "translateX(50%)", background: "#b72534", color: "#000", padding: "4px 8px", borderRadius: 4, fontSize: 11, fontWeight: "bold", zIndex: 30, whiteSpace: "nowrap" }}>
                             {activeHint.message}
                           </div>
                         )}
@@ -502,14 +502,14 @@ export function InlinePricingEditor({
                           data-index={index}
                           data-field="price_max"
                           placeholder="أعلى"
-                          style={{ background: "transparent", border: "1px solid transparent", borderRadius: 4, color: "#f49921", fontSize: 16, fontWeight: 700, width: 60, textAlign: "center", padding: "2px 4px", transition: "all 0.2s" }}
-                          className="hover:border-dashed hover:border-[rgba(244,153,33,0.5)] focus:border-solid focus:border-[#f49921] focus:bg-[#15171a]"
+                          style={{ background: "transparent", border: "1px solid transparent", borderRadius: 4, color: "#b72534", fontSize: 16, fontWeight: 700, width: 60, textAlign: "center", padding: "2px 4px", transition: "all 0.2s" }}
+                          className="hover:border-dashed hover:border-[rgba(183,37,52,0.5)] focus:border-solid focus:border-[#b72534] focus:bg-[#161616]"
                         />
                         <DiffPreview oldVal={item.price_max} newVal={draft.price_max} />
                       </div>
                     </div>
                     {isPriceWarning && (
-                      <div style={{ fontSize: 10, color: "#f49921", marginTop: 4, display: "flex", alignItems: "center", justifyContent: "center", gap: 4, position: "absolute", bottom: -24, width: "100%" }}>
+                      <div style={{ fontSize: 10, color: "#b72534", marginTop: 4, display: "flex", alignItems: "center", justifyContent: "center", gap: 4, position: "absolute", bottom: -24, width: "100%" }}>
                         ⚠️ هذا السعر بعيد عن متوسط أسعارك في هذا القسم
                       </div>
                     )}
@@ -522,7 +522,7 @@ export function InlinePricingEditor({
                       data-field="unit_ar"
                       placeholder="الوحدة (JOD)"
                       style={{ background: "transparent", border: "1px solid transparent", borderRadius: 4, color: "#cfc8bd", fontSize: 13, textAlign: "center", width: "100%", padding: "2px 4px", transition: "all 0.2s" }}
-                      className="hover:border-dashed hover:border-[rgba(244,153,33,0.5)] focus:border-solid focus:border-[#f49921] focus:bg-[#15171a]"
+                      className="hover:border-dashed hover:border-[rgba(183,37,52,0.5)] focus:border-solid focus:border-[#b72534] focus:bg-[#161616]"
                     />
                     <DiffPreview oldVal={item.unit_ar} newVal={draft.unit_ar} />
 
@@ -533,8 +533,8 @@ export function InlinePricingEditor({
                       data-index={index}
                       data-field="note_ar"
                       placeholder="ملاحظة إضافية"
-                      style={{ background: "transparent", border: "1px solid transparent", borderRadius: 4, color: "#9b948a", fontSize: 11, textAlign: "center", width: "100%", padding: "2px 4px", marginTop: 4, transition: "all 0.2s" }}
-                      className="hover:border-dashed hover:border-[rgba(244,153,33,0.5)] focus:border-solid focus:border-[#f49921] focus:bg-[#15171a]"
+                      style={{ background: "transparent", border: "1px solid transparent", borderRadius: 4, color: "#bdb3a0", fontSize: 11, textAlign: "center", width: "100%", padding: "2px 4px", marginTop: 4, transition: "all 0.2s" }}
+                      className="hover:border-dashed hover:border-[rgba(183,37,52,0.5)] focus:border-solid focus:border-[#b72534] focus:bg-[#161616]"
                     />
                     <DiffPreview oldVal={item.note_ar} newVal={draft.note_ar} />
                   </div>
@@ -545,8 +545,8 @@ export function InlinePricingEditor({
                       {current.is_hidden ? <EyeOff size={16} /> : <Eye size={16} />}
                     </Button>
                     
-                    <Button size="icon" variant="outline" style={{ width: 32, height: 32, background: "rgba(14,15,17,0.8)", color: current.is_featured ? "#f49921" : "inherit" }} onClick={() => updateField(item.id, "is_featured", !current.is_featured)} title={current.is_featured ? "إلغاء التمييز" : "تمييز"}>
-                      <Star size={16} fill={current.is_featured ? "#f49921" : "none"} />
+                    <Button size="icon" variant="outline" style={{ width: 32, height: 32, background: "rgba(14,15,17,0.8)", color: current.is_featured ? "#b72534" : "inherit" }} onClick={() => updateField(item.id, "is_featured", !current.is_featured)} title={current.is_featured ? "إلغاء التمييز" : "تمييز"}>
+                      <Star size={16} fill={current.is_featured ? "#b72534" : "none"} />
                     </Button>
                     
                     {deleteConfirmId === item.id ? (
@@ -565,13 +565,13 @@ export function InlinePricingEditor({
           })}
           
           {visibleItems.length === 0 && (
-            <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 40, color: "#9b948a", textAlign: "center", border: "1px dashed rgba(244,153,33,0.2)", borderRadius: 12 }}>
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 40, color: "#bdb3a0", textAlign: "center", border: "1px dashed rgba(183,37,52,0.2)", borderRadius: 12 }}>
               <div className="hover:animate-bounce cursor-pointer mb-4" onClick={() => onCreateNew(section, region)}>
-                <PackageOpen size={48} color="#f49921" opacity={0.6} />
+                <PackageOpen size={48} color="#b72534" opacity={0.6} />
               </div>
-              <h3 style={{ fontSize: 18, color: "#f0ece4", marginBottom: 8 }}>لا يوجد أسعار هنا بعد</h3>
+              <h3 style={{ fontSize: 18, color: "#f2e4d4", marginBottom: 8 }}>لا يوجد أسعار هنا بعد</h3>
               <p style={{ fontSize: 13, maxWidth: 200, marginBottom: 16 }}>اضغط على الزر في الأعلى أو على الصندوق لإضافة تسعيرة جديدة.</p>
-              <Button variant="outline" onClick={() => onCreateNew(section, region)} style={{ borderColor: "#f49921", color: "#f49921" }}>
+              <Button variant="outline" onClick={() => onCreateNew(section, region)} style={{ borderColor: "#b72534", color: "#b72534" }}>
                 <Plus size={16} style={{ marginLeft: 6 }} /> إضافة بند
               </Button>
             </div>
@@ -582,13 +582,13 @@ export function InlinePricingEditor({
       {/* Bulk Action Bar */}
       <div 
         className={`bulk-action-bar transition-transform duration-300 ${selectedIds.size > 0 ? "translate-y-0" : "translate-y-full"}`}
-        style={{ position: "sticky", bottom: 0, left: 0, right: 0, background: "rgba(14,15,17,0.95)", backdropFilter: "blur(8px)", borderTop: "1px solid rgba(244,153,33,0.3)", padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 30, boxShadow: "0 -4px 12px rgba(0,0,0,0.5)", marginTop: "auto" }}
+        style={{ position: "sticky", bottom: 0, left: 0, right: 0, background: "rgba(14,15,17,0.95)", backdropFilter: "blur(8px)", borderTop: "1px solid rgba(183,37,52,0.3)", padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 30, boxShadow: "0 -4px 12px rgba(0,0,0,0.5)", marginTop: "auto" }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <span style={{ display: "flex", alignItems: "center", gap: 6, color: "#f49921", fontWeight: "bold" }}>
+          <span style={{ display: "flex", alignItems: "center", gap: 6, color: "#b72534", fontWeight: "bold" }}>
             <Check size={18} /> {selectedIds.size} بنود محددة
           </span>
-          <Button variant="ghost" size="sm" onClick={() => setSelectedIds(new Set())} style={{ color: "#9b948a" }}>إلغاء التحديد</Button>
+          <Button variant="ghost" size="sm" onClick={() => setSelectedIds(new Set())} style={{ color: "#bdb3a0" }}>إلغاء التحديد</Button>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           <Button 
@@ -598,7 +598,7 @@ export function InlinePricingEditor({
               selectedIds.forEach(id => updateField(id, "is_hidden", true));
               setSelectedIds(new Set());
             }}
-            style={{ borderColor: "rgba(255,255,255,0.2)", color: "#f0ece4" }}
+            style={{ borderColor: "rgba(255,255,255,0.2)", color: "#f2e4d4" }}
           >
             <EyeOff size={16} style={{ marginLeft: 6 }} /> إخفاء الكل
           </Button>

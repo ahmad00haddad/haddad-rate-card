@@ -35,15 +35,15 @@ const policies = [
 ];
 
 const sectionColors: Record<string, string> = {
-  reels: '#f49921',
-  films: '#f49921',
-  commercials: '#f49921',
-  docs: '#f49921',
-  events: '#f49921',
-  editing: '#f49921',
-  dayrate: '#f49921',
+  reels: '#b72534',
+  films: '#b72534',
+  commercials: '#b72534',
+  docs: '#b72534',
+  events: '#b72534',
+  editing: '#b72534',
+  dayrate: '#b72534',
 };
-const defaultAccent = '#f49921';
+const defaultAccent = '#b72534';
 
 function hexToRgb(hex: string) {
   const h = hex.replace('#', '');
@@ -268,6 +268,7 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
   if (isLoading) {
     return (
       <div className={`ratecard ${compact ? "ratecard--compact" : ""}`} dir={rtl ? "rtl" : "ltr"}>
+        <div className="ratecard-grain" />
          <main className="ratecard__main" style={{ opacity: 0.5 }}>
            <div className="animate-pulse flex flex-col gap-4">
              <div className="h-10 bg-gray-800 rounded w-1/3 mb-8"></div>
@@ -287,6 +288,7 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
       onTouchEnd={handleTouchEnd}
       style={{ "--accent-rgb": hexToRgb(currentAccent) } as React.CSSProperties}
     >
+      <div className="ratecard-grain" />
       <div style={{
         position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: -1,
         background: 'radial-gradient(circle at 50% 50%, rgba(var(--accent-rgb), 0.15), transparent 60%)',
@@ -300,13 +302,13 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
           position: "fixed", top: 0, left: 0, right: 0, background: "rgba(10, 10, 10, 0.95)", 
           backdropFilter: "blur(12px)", padding: "12px 24px", zIndex: 50, 
           borderBottom: "1px solid rgba(255,255,255,0.1)", display: "flex", 
-          justifyContent: "center", alignItems: "center", gap: 12, color: "#f0ece4",
+          justifyContent: "center", alignItems: "center", gap: 12, color: "#f2e4d4",
           boxShadow: "0 4px 12px rgba(0,0,0,0.5)"
         }}>
           <span style={{ fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
             📍 {regionLabel(region, language)} · <span className="[&>svg]:w-4 [&>svg]:h-4">{currentSection?.icon}</span> {text(currentSection?.ar, currentSection?.en)} · {visibleItems.length} {text("خيارات", "options")}
           </span>
-          <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} style={{ marginLeft: rtl ? 0 : 'auto', marginRight: rtl ? 'auto' : 0, fontSize: 12, background: "rgba(244,153,33,0.15)", color: "#f49921", padding: "4px 8px", borderRadius: 4, transition: "background 0.2s" }} className="hover:bg-[rgba(244,153,33,0.25)]">
+          <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} style={{ marginLeft: rtl ? 0 : 'auto', marginRight: rtl ? 'auto' : 0, fontSize: 12, background: "rgba(183,37,52,0.15)", color: "#b72534", padding: "4px 8px", borderRadius: 4, transition: "background 0.2s" }} className="hover:bg-[rgba(183,37,52,0.25)]">
             {text("العودة للأعلى ↑", "Back to top ↑")}
           </button>
         </div>
@@ -321,7 +323,7 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
             display: 'flex', alignItems: 'center', justifyContent: 'space-between'
           }}
         >
-          <button onClick={() => step === 3 ? setSection(null) : setRegion(null)} style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#f0ece4' }}>
+          <button onClick={() => step === 3 ? setSection(null) : setRegion(null)} style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#f2e4d4' }}>
             {rtl ? <ArrowRight size={18} /> : <ArrowLeft size={18} />}
             <span>{text("رجوع", "Back")}</span>
           </button>
@@ -329,7 +331,7 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
             {region && <span>📍 {regionLabel(region, language)}</span>}
             {section && currentSection && (
               <>
-                <span style={{ color: '#9b948a' }}>/</span>
+                <span style={{ color: '#bdb3a0' }}>/</span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                   <span className="[&>svg]:w-4 [&>svg]:h-4">{currentSection.icon}</span>
                   {text(currentSection.ar, currentSection.en)}
@@ -350,8 +352,8 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
           {!compact && <Button asChild variant="outline" size="sm"><Link to="/equipment"><Wrench />{text("المعدات", "Equipment")}</Link></Button>}
           
           <div style={{ display: "flex", background: "rgba(255,255,255,0.05)", borderRadius: 6, overflow: "hidden", border: "1px solid rgba(255,255,255,0.1)" }}>
-            <button onClick={() => setCurrency("JOD")} style={{ padding: "4px 8px", fontSize: 11, fontWeight: currency === "JOD" ? "bold" : "normal", background: currency === "JOD" ? "#f49921" : "transparent", color: currency === "JOD" ? "#000" : "#fff" }}>JOD</button>
-            <button onClick={() => setCurrency("USD")} style={{ padding: "4px 8px", fontSize: 11, fontWeight: currency === "USD" ? "bold" : "normal", background: currency === "USD" ? "#f49921" : "transparent", color: currency === "USD" ? "#000" : "#fff" }}>USD</button>
+            <button onClick={() => setCurrency("JOD")} style={{ padding: "4px 8px", fontSize: 11, fontWeight: currency === "JOD" ? "bold" : "normal", background: currency === "JOD" ? "#b72534" : "transparent", color: currency === "JOD" ? "#000" : "#fff" }}>JOD</button>
+            <button onClick={() => setCurrency("USD")} style={{ padding: "4px 8px", fontSize: 11, fontWeight: currency === "USD" ? "bold" : "normal", background: currency === "USD" ? "#b72534" : "transparent", color: currency === "USD" ? "#000" : "#fff" }}>USD</button>
           </div>
 
           <Button variant="outline" size="sm" onClick={() => setLanguage(rtl ? "en" : "ar")}>{rtl ? "EN" : "عربي"}</Button>
@@ -382,7 +384,7 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
               display: "flex", 
               alignItems: "center", 
               gap: 8,
-              color: step === 1 ? currentAccent : (step > 1 ? "#f0ece4" : "#9b948a"),
+              color: step === 1 ? currentAccent : (step > 1 ? "#f2e4d4" : "#bdb3a0"),
               fontWeight: step === 1 ? 700 : (step > 1 ? 500 : 400),
               transition: "all 0.3s ease"
             }}
@@ -408,7 +410,7 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
               display: "flex", 
               alignItems: "center", 
               gap: 8,
-              color: step === 2 ? currentAccent : (step > 2 ? "#f0ece4" : "#9b948a"),
+              color: step === 2 ? currentAccent : (step > 2 ? "#f2e4d4" : "#bdb3a0"),
               fontWeight: step === 2 ? 700 : (step > 2 ? 500 : 400),
               transition: "all 0.3s ease",
               opacity: step >= 2 ? 1 : 0.5
@@ -433,7 +435,7 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
               display: "flex", 
               alignItems: "center", 
               gap: 8,
-              color: step === 3 ? currentAccent : "#9b948a",
+              color: step === 3 ? currentAccent : "#bdb3a0",
               fontWeight: step === 3 ? 700 : 400,
               transition: "all 0.3s ease",
               opacity: step >= 3 ? 1 : 0.5
@@ -519,16 +521,16 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
                     onMouseEnter={(e) => { e.currentTarget.style.borderColor = `rgba(${hexToRgb(entryAccent)}, 0.6)`; e.currentTarget.style.background = `rgba(${hexToRgb(entryAccent)}, 0.05)`; }}
                     onMouseLeave={(e) => { e.currentTarget.style.borderColor = `rgba(${hexToRgb(entryAccent)}, 0.2)`; e.currentTarget.style.background = "rgba(255,255,255,0.03)"; }}
                   >
-                    <span style={{ color: "#9b948a", transition: "color 0.3s" }} className="group-hover:!text-[var(--hover-text)] [&>svg]:w-10 [&>svg]:h-10">
+                    <span style={{ color: "#bdb3a0", transition: "color 0.3s" }} className="group-hover:!text-[var(--hover-text)] [&>svg]:w-10 [&>svg]:h-10">
                       {entry.icon}
                     </span>
                     <div style={{ textAlign: "center" }}>
-                      <strong style={{ display: "block", fontSize: 18, color: "#f0ece4", transition: "color 0.3s" }} className="group-hover:text-white">{text(entry.ar, entry.en)}</strong>
-                      <small style={{ color: "#9b948a", fontSize: 13, transition: "color 0.3s" }} className="group-hover:!text-[var(--hover-text)]">{entry.en}</small>
+                      <strong style={{ display: "block", fontSize: 18, color: "#f2e4d4", transition: "color 0.3s" }} className="group-hover:text-white">{text(entry.ar, entry.en)}</strong>
+                      <small style={{ color: "#bdb3a0", fontSize: 13, transition: "color 0.3s" }} className="group-hover:!text-[var(--hover-text)]">{entry.en}</small>
                     </div>
                     {/* Hover preview */}
                     <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 absolute -bottom-4 left-0 right-0 flex justify-center translate-y-2 group-hover:translate-y-0" style={{ pointerEvents: 'none', zIndex: 10 }}>
-                      <span style={{ fontSize: 12, color: entryAccent, background: "#15171a", border: `1px solid rgba(${hexToRgb(entryAccent)}, 0.3)`, padding: "4px 10px", borderRadius: 12, whiteSpace: "nowrap", boxShadow: "0 4px 6px rgba(0,0,0,0.3)" }}>
+                      <span style={{ fontSize: 12, color: entryAccent, background: "#161616", border: `1px solid rgba(${hexToRgb(entryAccent)}, 0.3)`, padding: "4px 10px", borderRadius: 12, whiteSpace: "nowrap", boxShadow: "0 4px 6px rgba(0,0,0,0.3)" }}>
                         {text(previewAr, previewEn)}
                       </span>
                     </div>
@@ -549,7 +551,7 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
             <RegionButton region={region} language={language} onClick={() => { setRegion(null); setSection(null); }} />
             
             <div className="ratecard__section-title" style={{ marginTop: 24 }}>
-              <h2 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: '#f0ece4' }}>
+              <h2 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: '#f2e4d4' }}>
                 <span style={{ color: currentAccent }} className="[&>svg]:w-7 [&>svg]:h-7">{currentSection?.icon}</span>
                 {text(currentSection?.ar ?? "", currentSection?.en ?? "")}
               </h2>
@@ -566,9 +568,9 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
             </div>
             
             {section === "reels" && (
-              <div style={{ marginTop: 16, padding: "12px 16px", background: "#15171a", border: "1px solid rgba(244,153,33,0.3)", borderRight: rtl ? "3px solid #f49921" : "1px solid rgba(244,153,33,0.3)", borderLeft: !rtl ? "3px solid #f49921" : "1px solid rgba(244,153,33,0.3)", borderRadius: 4, color: "#f0ece4", fontSize: 14, display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ marginTop: 16, padding: "12px 16px", background: "#161616", border: "1px solid rgba(183,37,52,0.3)", borderRight: rtl ? "3px solid #b72534" : "1px solid rgba(183,37,52,0.3)", borderLeft: !rtl ? "3px solid #b72534" : "1px solid rgba(183,37,52,0.3)", borderRadius: 4, color: "#f2e4d4", fontSize: 14, display: "flex", alignItems: "center", gap: 8 }}>
                 <span>✍️</span>
-                <div><strong style={{ color: "#f49921", fontWeight: 700 }}>{text("كتابة السيناريو:", "Scriptwriting:")}</strong> {text("متاحة عبر كاتب خارجي متعاون — 50 إلى 100 JOD إضافية حسب المشروع.", "Available through an external collaborating writer — 50 to 100 JOD additional depending on the project.")}</div>
+                <div><strong style={{ color: "#b72534", fontWeight: 700 }}>{text("كتابة السيناريو:", "Scriptwriting:")}</strong> {text("متاحة عبر كاتب خارجي متعاون — 50 إلى 100 JOD إضافية حسب المشروع.", "Available through an external collaborating writer — 50 to 100 JOD additional depending on the project.")}</div>
               </div>
             )}
 
@@ -609,7 +611,7 @@ function RegionButton({ region, language, onClick }: { region: Exclude<PricingRe
   return <button className="ratecard__region-pill" onClick={onClick}><MapPin /><span>{language === "ar" ? "المنطقة:" : "Region:"}</span><strong>{regionLabel(region, language)}</strong><small>{language === "ar" ? "تغيير" : "Change"}</small></button>;
 }
 
-function PricingRow({ item, language, currency, region, accent = '#f49921' }: { item: PricingItem; language: PricingLanguage, currency: "JOD" | "USD", region: Exclude<PricingRegion, "both">, accent?: string }) {
+function PricingRow({ item, language, currency, region, accent = '#b72534' }: { item: PricingItem; language: PricingLanguage, currency: "JOD" | "USD", region: Exclude<PricingRegion, "both">, accent?: string }) {
   const ar = language === "ar";
   const unit = ar ? item.unit_ar : item.unit_en;
   const note = ar ? item.note_ar : item.note_en;
@@ -643,8 +645,8 @@ function PricingRow({ item, language, currency, region, accent = '#f49921' }: { 
               {ar ? item.tag_ar : item.tag_en}
             </span>
           )}
-          <h3 className="text-xl md:text-3xl font-extrabold text-[#f0ece4] m-0 mb-2 md:mb-3 leading-tight">{title}</h3>
-          <p className="text-[14px] md:text-base font-normal text-[#9b948a] m-0 leading-relaxed line-clamp-3 md:line-clamp-none max-w-3xl">
+          <h3 className="text-xl md:text-3xl font-extrabold text-[#f2e4d4] m-0 mb-2 md:mb-3 leading-tight">{title}</h3>
+          <p className="text-[14px] md:text-base font-normal text-[#bdb3a0] m-0 leading-relaxed line-clamp-3 md:line-clamp-none max-w-3xl">
             {ar ? item.desc_ar : item.desc_en}
           </p>
         </div>
@@ -655,7 +657,7 @@ function PricingRow({ item, language, currency, region, accent = '#f49921' }: { 
           style={{ borderColor: `rgba(${hexToRgb(accent)}, 0.2)` }}
         >
           <div className="flex flex-col md:w-full items-start" style={{ alignItems: ar ? "flex-start" : "flex-start" }}>
-            <small className="text-[#9b948a] text-[12px] md:text-sm mb-0 md:mb-2">{ar ? item.price_label_ar : item.price_label_en}</small>
+            <small className="text-[#bdb3a0] text-[12px] md:text-sm mb-0 md:mb-2">{ar ? item.price_label_ar : item.price_label_en}</small>
             <div className="flex items-baseline gap-1.5 md:gap-2">
               <strong className="text-2xl md:text-[36px] font-extrabold leading-none tracking-tight" style={{ color: accent }}>
                 <AnimatedNumber value={formattedPrice} />
@@ -664,9 +666,9 @@ function PricingRow({ item, language, currency, region, accent = '#f49921' }: { 
                 {currency === "USD" ? "USD" : (unit || item.currency)}
               </span>
             </div>
-            {note && <em className="text-[11px] md:text-sm text-[#9b948a] mt-1 md:mt-3 not-italic hidden md:block">{note}</em>}
+            {note && <em className="text-[11px] md:text-sm text-[#bdb3a0] mt-1 md:mt-3 not-italic hidden md:block">{note}</em>}
           </div>
-          {note && <em className="text-[11px] text-[#9b948a] mt-0 not-italic block md:hidden text-right leading-tight max-w-[120px]">{note}</em>}
+          {note && <em className="text-[11px] text-[#bdb3a0] mt-0 not-italic block md:hidden text-right leading-tight max-w-[120px]">{note}</em>}
         </div>
       </div>
     </article>
@@ -683,7 +685,7 @@ function PolicyStrip({ language }: { language: PricingLanguage }) {
       onClick={() => setIsOpen(!isOpen)}
     >
       {!isOpen ? (
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", color: "#f0ece4", fontSize: 14 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", color: "#f2e4d4", fontSize: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             <span>📋</span> 
             <strong>{ar ? "السياسات:" : "Policies:"}</strong> 
@@ -691,21 +693,21 @@ function PolicyStrip({ language }: { language: PricingLanguage }) {
               {ar ? "تعديلان مجاناً · التسليم 7-14 يوم · المعدات مشمولة" : "2 free revisions · Delivery 7-14 days · Equipment included"}
             </span>
           </div>
-          <span style={{ color: "#f49921", fontSize: 13, whiteSpace: "nowrap", marginLeft: 16 }}>{ar ? "عرض التفاصيل ↓" : "View details ↓"}</span>
+          <span style={{ color: "#b72534", fontSize: 13, whiteSpace: "nowrap", marginLeft: 16 }}>{ar ? "عرض التفاصيل ↓" : "View details ↓"}</span>
         </div>
       ) : (
         <div style={{ opacity: 1, transition: "opacity 0.3s ease" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-            <h2 style={{ margin: 0, fontSize: 18, color: '#f0ece4' }}>{ar ? "السياسات والشروط" : "Policies & terms"}</h2>
-            <span style={{ color: "#f49921", fontSize: 13, padding: "4px 8px", background: "rgba(244,153,33,0.1)", borderRadius: 4 }}>{ar ? "إخفاء ↑" : "Hide ↑"}</span>
+            <h2 style={{ margin: 0, fontSize: 18, color: '#f2e4d4' }}>{ar ? "السياسات والشروط" : "Policies & terms"}</h2>
+            <span style={{ color: "#b72534", fontSize: 13, padding: "4px 8px", background: "rgba(183,37,52,0.1)", borderRadius: 4 }}>{ar ? "إخفاء ↑" : "Hide ↑"}</span>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 16 }}>
             {policies.map((policy) => (
               <article key={policy.en} style={{ padding: 16, background: "rgba(255,255,255,0.03)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.05)" }}>
                 <span style={{ display: "block", fontSize: 24, marginBottom: 8 }}>{policy.icon}</span>
-                <h3 style={{ margin: "0 0 4px 0", fontSize: 15, color: "#f0ece4" }}>{ar ? policy.ar : policy.en}</h3>
-                <strong style={{ display: "block", color: "#f49921", marginBottom: 4 }}>{policy.value}</strong>
-                <p style={{ margin: 0, fontSize: 13, color: "#9b948a", lineHeight: 1.5 }}>{ar ? policy.descAr : policy.descEn}</p>
+                <h3 style={{ margin: "0 0 4px 0", fontSize: 15, color: "#f2e4d4" }}>{ar ? policy.ar : policy.en}</h3>
+                <strong style={{ display: "block", color: "#b72534", marginBottom: 4 }}>{policy.value}</strong>
+                <p style={{ margin: 0, fontSize: 13, color: "#bdb3a0", lineHeight: 1.5 }}>{ar ? policy.descAr : policy.descEn}</p>
               </article>
             ))}
           </div>
@@ -748,15 +750,15 @@ function ValuePropositionStrip({ language }: { language: PricingLanguage }) {
 
   return (
     <div 
-      style={{ display: 'block', marginTop: 16, padding: isOpen ? 24 : 16, background: 'rgba(244,153,33,0.03)', borderRadius: 12, border: '1px dashed rgba(244,153,33,0.2)', cursor: 'pointer', transition: 'all 0.3s ease' }} 
+      style={{ display: 'block', marginTop: 16, padding: isOpen ? 24 : 16, background: 'rgba(183,37,52,0.03)', borderRadius: 12, border: '1px dashed rgba(183,37,52,0.2)', cursor: 'pointer', transition: 'all 0.3s ease' }} 
       onClick={() => setIsOpen(!isOpen)}
     >
       {!isOpen ? (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: '#f49921', fontSize: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: '#b72534', fontSize: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             <span>✨</span> 
             <strong style={{ fontWeight: 800 }}>{ar ? 'لماذا نحن؟ وماذا يشمل السعر؟' : 'Why us & What\'s included?'}</strong> 
-            <span style={{ opacity: 0.8, color: '#f0ece4', fontSize: 12 }}>
+            <span style={{ opacity: 0.8, color: '#f2e4d4', fontSize: 12 }}>
               {ar ? 'معدات سينمائية · تنقل مجاني · جودة عالية' : 'Cinematic gear · Free transport · High quality'}
             </span>
           </div>
@@ -765,16 +767,16 @@ function ValuePropositionStrip({ language }: { language: PricingLanguage }) {
       ) : (
         <div style={{ opacity: 1, transition: 'opacity 0.3s ease' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-            <h2 style={{ margin: 0, fontSize: 18, color: '#f49921', fontWeight: 800 }}>{ar ? 'لماذا نحن؟ وماذا يشمل السعر؟' : 'Why us & What\'s included?'}</h2>
-            <span style={{ color: '#000', fontSize: 13, padding: '4px 8px', background: '#f49921', borderRadius: 4, fontWeight: 'bold' }}>{ar ? 'إخفاء ↑' : 'Hide ↑'}</span>
+            <h2 style={{ margin: 0, fontSize: 18, color: '#b72534', fontWeight: 800 }}>{ar ? 'لماذا نحن؟ وماذا يشمل السعر؟' : 'Why us & What\'s included?'}</h2>
+            <span style={{ color: '#000', fontSize: 13, padding: '4px 8px', background: '#b72534', borderRadius: 4, fontWeight: 'bold' }}>{ar ? 'إخفاء ↑' : 'Hide ↑'}</span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 16 }}>
             {valueProps.map((prop) => (
-              <article key={prop.en} style={{ padding: 16, background: 'rgba(255,255,255,0.03)', borderRadius: 8, border: '1px solid rgba(244,153,33,0.1)' }}>
+              <article key={prop.en} style={{ padding: 16, background: 'rgba(255,255,255,0.03)', borderRadius: 8, border: '1px solid rgba(183,37,52,0.1)' }}>
                 <span style={{ display: 'block', fontSize: 24, marginBottom: 8 }}>{prop.icon}</span>
-                <h3 style={{ margin: '0 0 4px 0', fontSize: 15, color: '#f0ece4', fontWeight: 700 }}>{ar ? prop.ar : prop.en}</h3>
-                <strong style={{ display: 'block', color: '#f49921', marginBottom: 4 }}>{prop.value}</strong>
-                <p style={{ margin: 0, fontSize: 13, color: '#9b948a', lineHeight: 1.5 }}>{ar ? prop.descAr : prop.descEn}</p>
+                <h3 style={{ margin: '0 0 4px 0', fontSize: 15, color: '#f2e4d4', fontWeight: 700 }}>{ar ? prop.ar : prop.en}</h3>
+                <strong style={{ display: 'block', color: '#b72534', marginBottom: 4 }}>{prop.value}</strong>
+                <p style={{ margin: 0, fontSize: 13, color: '#bdb3a0', lineHeight: 1.5 }}>{ar ? prop.descAr : prop.descEn}</p>
               </article>
             ))}
           </div>

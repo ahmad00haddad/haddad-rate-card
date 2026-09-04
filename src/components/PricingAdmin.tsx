@@ -48,7 +48,7 @@ export default function PricingAdmin() {
 
   let timerColor = "#3ddc97";
   if (timeSinceEdit > 5 * 60) timerColor = "#fdcb6e";
-  if (timeSinceEdit > 10 * 60) timerColor = "#f49921";
+  if (timeSinceEdit > 10 * 60) timerColor = "#b72534";
   const timerWidth = Math.min(100, (timeSinceEdit / maxTime) * 100);
 
   // 2. Undo Toast State
@@ -251,12 +251,12 @@ export default function PricingAdmin() {
 
       <div className="pricing-admin__head" style={{ marginBottom: 16, display: "flex", flexWrap: "wrap", gap: 16, justifyContent: "space-between", paddingTop: 8 }}>
         <div>
-          <span style={{ fontSize: 12, color: "#f49921", fontWeight: "bold" }}>مقارنة وتعديل مباشر</span>
+          <span style={{ fontSize: 12, color: "#b72534", fontWeight: "bold" }}>مقارنة وتعديل مباشر</span>
           <h2 style={{ fontSize: 24, margin: "4px 0" }}>إدارة أسعار إربد وعمّان</h2>
-          <p style={{ margin: 0, color: "#9b948a", fontSize: 14 }}>عدّل النصوص والأسعار مباشرة كما تظهر للزبون.</p>
+          <p style={{ margin: 0, color: "#bdb3a0", fontSize: 14 }}>عدّل النصوص والأسعار مباشرة كما تظهر للزبون.</p>
           
           {timeSinceEdit > 14 * 60 && (
-            <p style={{ margin: "4px 0 0 0", color: "#f49921", fontSize: 13, fontWeight: "bold", animation: "pulse 2s infinite" }}>
+            <p style={{ margin: "4px 0 0 0", color: "#b72534", fontSize: 13, fontWeight: "bold", animation: "pulse 2s infinite" }}>
               💡 لديك تعديلات غير محفوظة منذ 14 دقيقة
             </p>
           )}
@@ -264,9 +264,9 @@ export default function PricingAdmin() {
         <div className="pricing-admin__head-actions" style={{ display: "flex", alignItems: "center", gap: 12 }}>
           
           {viewMode === "single" && (
-            <div style={{ display: "flex", background: "rgba(255,255,255,0.05)", borderRadius: 6, overflow: "hidden", border: "1px solid rgba(244,153,33,0.3)" }}>
-              <button onClick={() => setMobileTab("amman")} style={{ padding: "6px 16px", fontSize: 13, fontWeight: mobileTab === "amman" ? "bold" : "normal", background: mobileTab === "amman" ? "#f49921" : "transparent", color: mobileTab === "amman" ? "#000" : "#fff", transition: "all 0.2s" }}>عمّان</button>
-              <button onClick={() => setMobileTab("irbid")} style={{ padding: "6px 16px", fontSize: 13, fontWeight: mobileTab === "irbid" ? "bold" : "normal", background: mobileTab === "irbid" ? "#f49921" : "transparent", color: mobileTab === "irbid" ? "#000" : "#fff", transition: "all 0.2s" }}>إربد</button>
+            <div style={{ display: "flex", background: "rgba(255,255,255,0.05)", borderRadius: 6, overflow: "hidden", border: "1px solid rgba(183,37,52,0.3)" }}>
+              <button onClick={() => setMobileTab("amman")} style={{ padding: "6px 16px", fontSize: 13, fontWeight: mobileTab === "amman" ? "bold" : "normal", background: mobileTab === "amman" ? "#b72534" : "transparent", color: mobileTab === "amman" ? "#000" : "#fff", transition: "all 0.2s" }}>عمّان</button>
+              <button onClick={() => setMobileTab("irbid")} style={{ padding: "6px 16px", fontSize: 13, fontWeight: mobileTab === "irbid" ? "bold" : "normal", background: mobileTab === "irbid" ? "#b72534" : "transparent", color: mobileTab === "irbid" ? "#000" : "#fff", transition: "all 0.2s" }}>إربد</button>
             </div>
           )}
 
@@ -274,7 +274,7 @@ export default function PricingAdmin() {
             <Button 
               variant="outline"
               onClick={() => setViewMode(viewMode === "single" ? "split" : "single")}
-              style={{ borderColor: "#f49921", color: "#f49921" }}
+              style={{ borderColor: "#b72534", color: "#b72534" }}
             >
               <ArrowRightLeft size={16} style={{ marginLeft: 6 }} /> {viewMode === "single" ? "عرض جانبي (مقارنة)" : "عرض مفرد (شاشة كاملة)"}
             </Button>
@@ -284,7 +284,7 @@ export default function PricingAdmin() {
             onClick={saveAll} 
             disabled={!dirtyIds.length || saving !== null} 
             style={{ 
-              background: status?.kind === "success" ? "#3ddc97" : "#f49921", 
+              background: status?.kind === "success" ? "#3ddc97" : "#b72534", 
               color: "#000", 
               fontWeight: "bold",
               transition: "all 0.3s ease",
@@ -346,7 +346,7 @@ export default function PricingAdmin() {
             </ResizablePanel>
             
             <ResizableHandle style={{ width: 8, cursor: "col-resize", background: "transparent", position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <div style={{ width: 2, height: 40, background: "rgba(244,153,33,0.3)", borderRadius: 2 }} />
+              <div style={{ width: 2, height: 40, background: "rgba(183,37,52,0.3)", borderRadius: 2 }} />
             </ResizableHandle>
             
             <ResizablePanel defaultSize={50} minSize={30}>
@@ -368,16 +368,16 @@ export default function PricingAdmin() {
 
       {/* 2. Undo Toast */}
       {undoToast && (
-        <div style={{ position: "absolute", bottom: 24, left: "50%", transform: "translateX(-50%)", background: "#0e0f11", border: "1px solid rgba(244,153,33,0.3)", borderRadius: 8, padding: "12px 16px", display: "flex", alignItems: "center", gap: 16, zIndex: 100, boxShadow: "0 8px 32px rgba(0,0,0,0.8)" }}>
+        <div style={{ position: "absolute", bottom: 24, left: "50%", transform: "translateX(-50%)", background: "#0e0e0e", border: "1px solid rgba(183,37,52,0.3)", borderRadius: 8, padding: "12px 16px", display: "flex", alignItems: "center", gap: 16, zIndex: 100, boxShadow: "0 8px 32px rgba(0,0,0,0.8)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <Trash2 size={16} color="#ef6c6c" />
-            <span style={{ color: "#f0ece4", fontSize: 14 }}>تم حذف "{undoToast.name}"</span>
+            <span style={{ color: "#f2e4d4", fontSize: 14 }}>تم حذف "{undoToast.name}"</span>
           </div>
           <Button size="sm" variant="outline" onClick={handleUndo} style={{ borderColor: "#3ddc97", color: "#3ddc97", height: 28 }}>
             <Undo size={14} style={{ marginLeft: 6 }} /> تراجع
           </Button>
           <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 2, background: "rgba(255,255,255,0.1)", borderRadius: "0 0 8px 8px", overflow: "hidden" }}>
-            <div style={{ height: "100%", width: `${(undoToast.time / 5) * 100}%`, background: "#f49921", transition: "width 1s linear" }} />
+            <div style={{ height: "100%", width: `${(undoToast.time / 5) * 100}%`, background: "#b72534", transition: "width 1s linear" }} />
           </div>
         </div>
       )}
@@ -385,12 +385,12 @@ export default function PricingAdmin() {
       {/* 3. Compare Overlay */}
       {isCompareOpen && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setIsCompareOpen(false)}>
-          <div style={{ background: "#0e0f11", border: "1px solid rgba(244,153,33,0.3)", borderRadius: 12, width: "90%", maxWidth: 800, maxHeight: "85vh", display: "flex", flexDirection: "column", boxShadow: "0 12px 48px rgba(0,0,0,0.8)" }} onClick={e => e.stopPropagation()}>
+          <div style={{ background: "#0e0e0e", border: "1px solid rgba(183,37,52,0.3)", borderRadius: 12, width: "90%", maxWidth: 800, maxHeight: "85vh", display: "flex", flexDirection: "column", boxShadow: "0 12px 48px rgba(0,0,0,0.8)" }} onClick={e => e.stopPropagation()}>
             <div style={{ padding: "16px 24px", borderBottom: "1px solid rgba(255,255,255,0.1)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h3 style={{ margin: 0, fontSize: 18, color: "#f49921", display: "flex", alignItems: "center", gap: 8 }}>
+              <h3 style={{ margin: 0, fontSize: 18, color: "#b72534", display: "flex", alignItems: "center", gap: 8 }}>
                 <ArrowRightLeft size={20} /> مقارنة أسعار المنطقتين
               </h3>
-              <Button variant="ghost" size="icon" onClick={() => setIsCompareOpen(false)} style={{ color: "#9b948a" }}>
+              <Button variant="ghost" size="icon" onClick={() => setIsCompareOpen(false)} style={{ color: "#bdb3a0" }}>
                 <X size={20} />
               </Button>
             </div>
@@ -401,9 +401,9 @@ export default function PricingAdmin() {
                   key={s.key}
                   onClick={() => setCompareSection(s.key)}
                   style={{
-                    background: compareSection === s.key ? "#f49921" : "transparent",
-                    color: compareSection === s.key ? "#000" : "#f0ece4",
-                    border: "1px solid #f49921",
+                    background: compareSection === s.key ? "#b72534" : "transparent",
+                    color: compareSection === s.key ? "#000" : "#f2e4d4",
+                    border: "1px solid #b72534",
                     padding: "6px 12px",
                     borderRadius: 6,
                     fontSize: 13,
@@ -417,8 +417,8 @@ export default function PricingAdmin() {
 
             <div style={{ flex: 1, overflowY: "auto", padding: 24 }}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
-                <div style={{ textAlign: "center", fontWeight: "bold", color: "#f0ece4", borderBottom: "2px solid rgba(244,153,33,0.5)", paddingBottom: 8 }}>عمّان</div>
-                <div style={{ textAlign: "center", fontWeight: "bold", color: "#f0ece4", borderBottom: "2px solid rgba(244,153,33,0.5)", paddingBottom: 8 }}>إربد</div>
+                <div style={{ textAlign: "center", fontWeight: "bold", color: "#f2e4d4", borderBottom: "2px solid rgba(183,37,52,0.5)", paddingBottom: 8 }}>عمّان</div>
+                <div style={{ textAlign: "center", fontWeight: "bold", color: "#f2e4d4", borderBottom: "2px solid rgba(183,37,52,0.5)", paddingBottom: 8 }}>إربد</div>
               </div>
               
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -453,15 +453,15 @@ export default function PricingAdmin() {
                     return (
                       <div key={idx} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, padding: "8px 0", borderBottom: "1px dashed rgba(255,255,255,0.05)" }}>
                         <div style={{ background: "rgba(255,255,255,0.02)", padding: "8px 12px", borderRadius: 6, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <span style={{ fontSize: 13, color: group.amman ? "#f0ece4" : "#555" }}>{group.amman ? name : "-"}</span>
+                          <span style={{ fontSize: 13, color: group.amman ? "#f2e4d4" : "#555" }}>{group.amman ? name : "-"}</span>
                           {group.amman && (
-                            <span style={{ fontWeight: "bold", color: hasDiff ? "#f49921" : "#3ddc97" }}>{ammanPrice} {group.amman.unit_ar}</span>
+                            <span style={{ fontWeight: "bold", color: hasDiff ? "#b72534" : "#3ddc97" }}>{ammanPrice} {group.amman.unit_ar}</span>
                           )}
                         </div>
                         <div style={{ background: "rgba(255,255,255,0.02)", padding: "8px 12px", borderRadius: 6, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <span style={{ fontSize: 13, color: group.irbid ? "#f0ece4" : "#555" }}>{group.irbid ? name : "-"}</span>
+                          <span style={{ fontSize: 13, color: group.irbid ? "#f2e4d4" : "#555" }}>{group.irbid ? name : "-"}</span>
                           {group.irbid && (
-                            <span style={{ fontWeight: "bold", color: hasDiff ? "#f49921" : "#3ddc97" }}>{irbidPrice} {group.irbid.unit_ar}</span>
+                            <span style={{ fontWeight: "bold", color: hasDiff ? "#b72534" : "#3ddc97" }}>{irbidPrice} {group.irbid.unit_ar}</span>
                           )}
                         </div>
                       </div>
@@ -477,7 +477,7 @@ export default function PricingAdmin() {
       {/* 4. Command Palette */}
       {cmdkOpen && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", backdropFilter: "blur(4px)", zIndex: 9999, display: "flex", justifyContent: "center", paddingTop: "15vh" }} onClick={() => setCmdkOpen(false)}>
-          <div style={{ background: "#15171a", width: "90%", maxWidth: 500, borderRadius: 12, border: "1px solid #f49921", padding: 16, boxShadow: "0 12px 48px rgba(244,153,33,0.15)", height: "fit-content" }} onClick={e => e.stopPropagation()}>
+          <div style={{ background: "#161616", width: "90%", maxWidth: 500, borderRadius: 12, border: "1px solid #b72534", padding: 16, boxShadow: "0 12px 48px rgba(183,37,52,0.15)", height: "fit-content" }} onClick={e => e.stopPropagation()}>
             <input 
               autoFocus
               placeholder="ابحث عن قسم أو منطقة... (مثال: إربد)"
@@ -490,15 +490,15 @@ export default function PricingAdmin() {
                    if (match) { match.action(); setCmdkOpen(false); }
                 }
               }}
-              style={{ width: "100%", padding: "12px 16px", background: "#0e0f11", border: "1px solid rgba(244,153,33,0.3)", borderRadius: 8, color: "#f0ece4", marginBottom: 12, outline: "none" }}
+              style={{ width: "100%", padding: "12px 16px", background: "#0e0e0e", border: "1px solid rgba(183,37,52,0.3)", borderRadius: 8, color: "#f2e4d4", marginBottom: 12, outline: "none" }}
             />
             <div style={{ maxHeight: 300, overflowY: "auto", display: "flex", flexDirection: "column", gap: 4 }}>
               {cmdkOptions.filter(o => o.label.toLowerCase().includes(cmdkSearch.toLowerCase())).map((o, i) => (
                 <div 
                   key={i} 
                   onClick={() => { o.action(); setCmdkOpen(false); }} 
-                  style={{ padding: "10px 16px", cursor: "pointer", borderRadius: 6, color: "#f0ece4", background: "rgba(255,255,255,0.02)", transition: "background 0.2s" }}
-                  onMouseEnter={e => e.currentTarget.style.background = "rgba(244,153,33,0.1)"}
+                  style={{ padding: "10px 16px", cursor: "pointer", borderRadius: 6, color: "#f2e4d4", background: "rgba(255,255,255,0.02)", transition: "background 0.2s" }}
+                  onMouseEnter={e => e.currentTarget.style.background = "rgba(183,37,52,0.1)"}
                   onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.02)"}
                 >
                   {o.label}

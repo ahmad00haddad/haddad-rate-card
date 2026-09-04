@@ -14,22 +14,22 @@ export function SiteHeader() {
         justifyContent: "space-between",
         background: "rgba(14,15,17,0.85)",
         backdropFilter: "blur(16px)",
-        borderBottom: "1px solid rgba(244,153,33,0.3)",
+        borderBottom: "1px solid rgba(183,37,52,0.3)",
         fontFamily: "'SFMada', sans-serif",
       }}
     >
       <Link to="/" style={{ display: "flex", flexDirection: "column", gap: 1, textDecoration: "none" }}>
-        <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: "#f0ece4" }}>
+        <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: "#f2e4d4" }}>
           أحمد حداد
         </span>
-        <span style={{ fontSize: 11, letterSpacing: 2, textTransform: "uppercase", color: "#f49921" }}>
+        <span style={{ fontSize: 11, letterSpacing: 2, textTransform: "uppercase", color: "#b72534" }}>
           مصور سينمائي · إربد
         </span>
       </Link>
       <nav style={{ display: "flex", gap: 14, alignItems: "center" }}>
         <a
           href="https://ahmadhaddad.lovable.app/"
-          style={{ ...navStyle, borderColor: "rgba(244,153,33,0.5)" }}
+          style={{ ...navStyle, borderColor: "rgba(183,37,52,0.5)" }}
         >
           ← الموقع الرئيسي
         </a>
@@ -42,8 +42,8 @@ export function SiteHeader() {
 
 const navStyle = {
   background: "transparent",
-  border: "1px solid rgba(244,153,33,0.3)",
-  color: "#f49921",
+  border: "1px solid rgba(183,37,52,0.3)",
+  color: "#b72534",
   fontSize: 13,
   fontWeight: 600,
   letterSpacing: 1,
