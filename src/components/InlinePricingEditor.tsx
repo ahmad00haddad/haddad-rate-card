@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect, useRef } from "react";
-import { Check, MapPin, Plus, Trash2, SplitSquareHorizontal, Eye, EyeOff, GripVertical, PackageOpen, Info, AlertTriangle, Search, X } from "lucide-react";
+import { Check, MapPin, Plus, Trash2, SplitSquareHorizontal, Eye, EyeOff, GripVertical, PackageOpen, Info, AlertTriangle, Search, X, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   pricingSections,
@@ -525,12 +525,28 @@ export function InlinePricingEditor({
                       className="hover:border-dashed hover:border-[rgba(244,153,33,0.5)] focus:border-solid focus:border-[#f49921] focus:bg-[#15171a]"
                     />
                     <DiffPreview oldVal={item.unit_ar} newVal={draft.unit_ar} />
+
+                    <input 
+                      value={current.note_ar || ""} 
+                      onChange={(e) => updateField(item.id, "note_ar", e.target.value)}
+                      onKeyDown={(e) => handleInputKeyDown(e, index, "note_ar")}
+                      data-index={index}
+                      data-field="note_ar"
+                      placeholder="ملاحظة إضافية"
+                      style={{ background: "transparent", border: "1px solid transparent", borderRadius: 4, color: "#9b948a", fontSize: 11, textAlign: "center", width: "100%", padding: "2px 4px", marginTop: 4, transition: "all 0.2s" }}
+                      className="hover:border-dashed hover:border-[rgba(244,153,33,0.5)] focus:border-solid focus:border-[#f49921] focus:bg-[#15171a]"
+                    />
+                    <DiffPreview oldVal={item.note_ar} newVal={draft.note_ar} />
                   </div>
 
                   {/* Actions overlay */}
                   <div style={{ position: "absolute", top: 12, left: 12, display: "flex", flexDirection: "column", gap: 6, zIndex: 10, opacity: 0 }} className="group-hover:opacity-100 transition-opacity">
                     <Button size="icon" variant="outline" style={{ width: 32, height: 32, background: "rgba(14,15,17,0.8)" }} onClick={() => updateField(item.id, "is_hidden", !current.is_hidden)} title={current.is_hidden ? "إظهار" : "إخفاء"}>
                       {current.is_hidden ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </Button>
+                    
+                    <Button size="icon" variant="outline" style={{ width: 32, height: 32, background: "rgba(14,15,17,0.8)", color: current.is_featured ? "#f49921" : "inherit" }} onClick={() => updateField(item.id, "is_featured", !current.is_featured)} title={current.is_featured ? "إلغاء التمييز" : "تمييز"}>
+                      <Star size={16} fill={current.is_featured ? "#f49921" : "none"} />
                     </Button>
                     
                     {deleteConfirmId === item.id ? (
