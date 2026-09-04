@@ -623,7 +623,7 @@ function PricingRow({ item, language, currency, region, accent = '#f49921' }: { 
     const min = convert(item.price_min);
     const max = convert(item.price_max);
     if (min !== null || max !== null) {
-      formattedPrice = min == null ? "" : max != null && max !== min ? `${min}–${max}` : String(min);
+      formattedPrice = min == null ? "" : max != null && max !== min ? `${min} - ${max}` : String(min);
     }
   } else {
     formattedPrice = formatPricingAmount(item);
@@ -631,57 +631,42 @@ function PricingRow({ item, language, currency, region, accent = '#f49921' }: { 
 
   return (
     <article 
-      className={`ratecard__price-row group ${item.is_featured ? "is-featured" : ""}`} 
-      style={{ 
-        paddingBottom: 24,
-        paddingTop: 16,
-        display: "flex",
-        flexDirection: "column",
-        gap: 16,
-        borderLeft: !ar ? `3px solid rgba(${hexToRgb(accent)}, 0.3)` : "none",
-        borderRight: ar ? `3px solid rgba(${hexToRgb(accent)}, 0.3)` : "none",
-        paddingLeft: !ar ? 16 : 0,
-        paddingRight: ar ? 16 : 0,
-        transition: "all 0.3s ease",
-        position: "relative",
-      }}
+      className={`ratecard__price-row group ${item.is_featured ? "is-featured" : ""} py-4 md:py-6 flex flex-col gap-3 md:gap-4 relative transition-all duration-300 ${!ar ? 'border-l-[3px] md:pl-4' : 'border-r-[3px] md:pr-4'} pl-3 pr-3 md:px-0`}
+      style={{ borderColor: `rgba(${hexToRgb(accent)}, 0.4)` }}
     >
-      <div style={{ margin: 0, display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap" }}>
+      <div className="flex flex-col md:flex-row justify-between items-start gap-4 md:gap-6">
         
         {/* VALUE FIRST: Title and Description take precedence */}
-        <div style={{ flex: "1 1 300px" }}>
+        <div className="flex-1 w-full md:min-w-[300px]">
           {item.is_featured && (ar ? item.tag_ar : item.tag_en) && (
-            <span style={{ display: "inline-block", fontSize: 11, textTransform: "uppercase", letterSpacing: 1, background: `rgba(${hexToRgb(accent)}, 0.1)`, color: accent, padding: "4px 8px", borderRadius: 4, marginBottom: 8 }}>
+            <span className="inline-block text-[10px] md:text-[11px] uppercase tracking-wider px-2 py-1 rounded mb-2 font-bold" style={{ background: `rgba(${hexToRgb(accent)}, 0.1)`, color: accent }}>
               {ar ? item.tag_ar : item.tag_en}
             </span>
           )}
-          <h3 style={{ fontSize: 24, fontWeight: 800, color: "#f0ece4", margin: "0 0 8px 0", lineHeight: 1.3 }}>{title}</h3>
-          <p style={{ display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden", fontSize: 15, fontWeight: 400, color: "#9b948a", margin: 0, lineHeight: 1.6 }}>
+          <h3 className="text-[18px] md:text-2xl font-extrabold text-[#f0ece4] m-0 mb-1 md:mb-2 leading-tight">{title}</h3>
+          <p className="text-[13px] md:text-[15px] font-normal text-[#9b948a] m-0 leading-relaxed line-clamp-3 md:line-clamp-none">
             {ar ? item.desc_ar : item.desc_en}
           </p>
         </div>
 
-        {/* PRICE SECOND: Muted until hovered/focused */}
+        {/* PRICE SECOND: Muted until hovered on desktop, always visible but compact on mobile */}
         <div 
-          className="opacity-40 grayscale group-hover:opacity-100 group-hover:grayscale-0 group-hover:scale-105"
-          style={{ 
-            display: "flex", 
-            flexDirection: "column", 
-            alignItems: ar ? "flex-end" : "flex-start", 
-            transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
-            background: "rgba(255,255,255,0.03)",
-            padding: "16px 24px",
-            borderRadius: 12,
-            border: `1px solid rgba(${hexToRgb(accent)}, 0.2)`,
-            minWidth: 140
-          }}
+          className="w-full md:w-auto flex flex-row md:flex-col items-center md:items-start justify-between md:justify-start transition-all duration-500 ease-out md:opacity-40 md:grayscale group-hover:opacity-100 group-hover:grayscale-0 md:group-hover:scale-105 bg-[rgba(255,255,255,0.03)] md:bg-transparent rounded-lg md:rounded-xl p-3 md:p-4 border md:border-transparent md:group-hover:bg-[rgba(255,255,255,0.03)] md:group-hover:border-[rgba(255,255,255,0.1)] active:scale-[0.98] cursor-default"
+          style={{ borderColor: `rgba(${hexToRgb(accent)}, 0.2)` }}
         >
-          <small style={{ color: "#9b948a", fontSize: 13, marginBottom: 4 }}>{ar ? item.price_label_ar : item.price_label_en}</small>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-            <strong style={{ fontSize: 28, fontWeight: 800, color: accent, lineHeight: 1 }}><AnimatedNumber value={formattedPrice} /></strong>
-            <span style={{ fontSize: 14, color: accent, fontWeight: 600 }}>{currency === "USD" ? "USD" : (unit || item.currency)}</span>
+          <div className="flex flex-col md:w-full items-start" style={{ alignItems: ar ? "flex-start" : "flex-start" }}>
+            <small className="text-[#9b948a] text-[11px] md:text-[13px] mb-0 md:mb-1">{ar ? item.price_label_ar : item.price_label_en}</small>
+            <div className="flex items-baseline gap-1.5 md:gap-2">
+              <strong className="text-xl md:text-[28px] font-extrabold leading-none" style={{ color: accent }}>
+                <AnimatedNumber value={formattedPrice} />
+              </strong>
+              <span className="text-[11px] md:text-sm font-semibold" style={{ color: accent }}>
+                {currency === "USD" ? "USD" : (unit || item.currency)}
+              </span>
+            </div>
+            {note && <em className="text-[10px] md:text-xs text-[#9b948a] mt-0.5 md:mt-1.5 not-italic hidden md:block">{note}</em>}
           </div>
-          {note && <em style={{ fontSize: 12, color: "#9b948a", marginTop: 6, fontStyle: "normal" }}>{note}</em>}
+          {note && <em className="text-[10px] text-[#9b948a] mt-0 not-italic block md:hidden text-right max-w-[100px] leading-tight">{note}</em>}
         </div>
       </div>
     </article>
