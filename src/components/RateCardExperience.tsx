@@ -223,32 +223,14 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
     setTouchStartX(null);
   };
 
-  const [autoDetected, setAutoDetected] = useState(false);
-  
-  // Auto-detect Jordan region
-  useEffect(() => {
-    if (!initialRegion && !region && !autoDetected) {
-      setAutoDetected(true);
-      try {
-        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        if (tz === 'Asia/Amman') {
-          // Default to Amman to save user click (progressive enhancement)
-          setRegion('amman');
-        }
-      } catch (e) {
-        // ignore
-      }
-    }
-  }, [initialRegion, region, autoDetected]);
-
   useEffect(() => {
     const handleScroll = () => {
-      setIsSticky(window.scrollY > 150);
-      setShowFab(window.scrollY > 300);
+      setIsSticky(window.scrollY > 200);
+      setShowFab(window.scrollY > 400 && step === 3);
     };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [step]);
 
   const handleServicesMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const cards = document.querySelectorAll('.spotlight-card');
