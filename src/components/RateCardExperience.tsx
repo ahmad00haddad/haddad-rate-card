@@ -721,28 +721,28 @@ function ValuePropositionStrip({ language }: { language: PricingLanguage }) {
 
   const valueProps = [
     {
-      icon: '🎥',
-      ar: 'معدات سينمائية',
-      en: 'Cinematic Gear',
-      value: ar ? 'مشمولة بالسعر' : 'Included',
-      descAr: 'نستخدم أحدث كاميرات سوني وإضاءة احترافية لضمان جودة بصرية مذهلة.',
-      descEn: 'We use the latest Sony cameras and professional lighting.'
+      icon: '🥇',
+      ar: 'ثقة +100 علامة تجارية',
+      en: '100+ Brands Trust',
+      value: ar ? '+12 سنوات خبرة' : '12+ Years Exp',
+      descAr: 'بخبرة تمتد لأكثر من 12 عاماً وإنجاز +175 مشروعاً، أنت تضع علامتك بين أيدي خبرة سينمائية موثوقة ومدروسة.',
+      descEn: 'With 12+ years and 175+ projects, your brand is in the hands of trusted cinematic experts.'
     },
     {
-      icon: '🧠',
-      ar: 'سرد قصصي (Storytelling)',
-      en: 'Storytelling',
-      value: ar ? 'إبداع متكامل' : 'Creative',
-      descAr: 'نحن لا نضغط زر الكاميرا فقط، بل نصنع قصة تجذب عميلك وتزيد مبيعاتك.',
-      descEn: "We don't just shoot, we craft stories that sell."
+      icon: '🎬',
+      ar: 'هوية أصيلة.. لا نسخ ولا تكرار',
+      en: 'Authentic Identity',
+      value: ar ? 'سرد قصصي ناضج' : 'Mature Storytelling',
+      descAr: 'في زمن الركض وراء التريندات السريعة، نصنع لك محتوى بصرياً ناضجاً وأصيلاً يترك أثراً حقيقياً ومستداماً.',
+      descEn: 'We do not chase cheap trends. We create mature, authentic content that leaves a lasting impact.'
     },
     {
-      icon: '🚗',
-      ar: 'تكاليف التنقل',
-      en: 'Transportation',
-      value: ar ? 'مغطاة (داخل عمّان)' : 'Covered (Amman)',
-      descAr: 'لا تقلق بشأن أي رسوم مخفية للتنقل والمواصلات داخل العاصمة.',
-      descEn: 'No need to worry about hidden transport fees inside the capital.'
+      icon: '💼',
+      ar: 'راحة بال وإنتاج متكامل',
+      en: 'All-inclusive Production',
+      value: ar ? 'لا توجد رسوم خفية' : 'No Hidden Fees',
+      descAr: 'أسعارنا واضحة. السعر يشمل الرؤية الإخراجية، أحدث المعدات السينمائية، وحتى تكاليف التنقل.',
+      descEn: 'Our prices are transparent. Rates include directing, cinematic gear, and transportation.'
     }
   ];
 
