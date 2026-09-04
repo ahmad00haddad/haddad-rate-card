@@ -194,7 +194,7 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
   const [showFab, setShowFab] = useState(false);
 
   const rtl = language === "ar";
-  
+  const step = !region ? 1 : !section ? 2 : 3;
   const currentAccent = section && sectionColors[section] ? sectionColors[section] : defaultAccent;
   const [isMobile, setIsMobile] = useState(false);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
@@ -262,7 +262,6 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
     void trackEvent("service_select", next);
   }
 
-  const step = !region ? 1 : !section ? 2 : 3;
   const text = <T,>(ar: T, en: T) => language === "ar" ? ar : en;
 
   // Render Skeleton Loader if loading
