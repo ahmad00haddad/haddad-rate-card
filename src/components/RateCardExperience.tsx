@@ -630,42 +630,42 @@ function PricingRow({ item, language, currency, region, accent = '#f49921' }: { 
 
   return (
     <article 
-      className={`ratecard__price-row group ${item.is_featured ? "is-featured" : ""} py-4 md:py-6 flex flex-col gap-3 md:gap-4 relative transition-all duration-300 ${!ar ? 'border-l-[3px] md:pl-4' : 'border-r-[3px] md:pr-4'} pl-3 pr-3 md:px-0`}
+      className={`ratecard__price-row group ${item.is_featured ? "is-featured" : ""} py-5 md:py-8 px-4 md:px-8 flex flex-col gap-4 relative transition-all duration-300 ${!ar ? 'border-l-[4px]' : 'border-r-[4px]'}`}
       style={{ borderColor: `rgba(${hexToRgb(accent)}, 0.4)` }}
     >
-      <div className="flex flex-col md:flex-row justify-between items-start gap-4 md:gap-6">
+      <div className="flex flex-col md:flex-row justify-between items-start gap-4 md:gap-8">
         
         {/* VALUE FIRST: Title and Description take precedence */}
         <div className="flex-1 w-full md:min-w-[300px]">
           {item.is_featured && (ar ? item.tag_ar : item.tag_en) && (
-            <span className="inline-block text-[10px] md:text-[11px] uppercase tracking-wider px-2 py-1 rounded mb-2 font-bold" style={{ background: `rgba(${hexToRgb(accent)}, 0.1)`, color: accent }}>
+            <span className="inline-block text-[10px] md:text-xs uppercase tracking-wider px-2 py-1 rounded mb-3 font-bold" style={{ background: `rgba(${hexToRgb(accent)}, 0.1)`, color: accent }}>
               {ar ? item.tag_ar : item.tag_en}
             </span>
           )}
-          <h3 className="text-[18px] md:text-2xl font-extrabold text-[#f0ece4] m-0 mb-1 md:mb-2 leading-tight">{title}</h3>
-          <p className="text-[13px] md:text-[15px] font-normal text-[#9b948a] m-0 leading-relaxed line-clamp-3 md:line-clamp-none">
+          <h3 className="text-xl md:text-3xl font-extrabold text-[#f0ece4] m-0 mb-2 md:mb-3 leading-tight">{title}</h3>
+          <p className="text-[14px] md:text-base font-normal text-[#9b948a] m-0 leading-relaxed line-clamp-3 md:line-clamp-none max-w-3xl">
             {ar ? item.desc_ar : item.desc_en}
           </p>
         </div>
 
         {/* PRICE SECOND: Muted until hovered on desktop, always visible but compact on mobile */}
         <div 
-          className="w-full md:w-auto flex flex-row md:flex-col items-center md:items-start justify-between md:justify-start transition-all duration-500 ease-out md:opacity-40 md:grayscale group-hover:opacity-100 group-hover:grayscale-0 md:group-hover:scale-105 bg-[rgba(255,255,255,0.03)] md:bg-transparent rounded-lg md:rounded-xl p-3 md:p-4 border md:border-transparent md:group-hover:bg-[rgba(255,255,255,0.03)] md:group-hover:border-[rgba(255,255,255,0.1)] active:scale-[0.98] cursor-default"
+          className="w-full md:w-auto flex flex-row md:flex-col items-center md:items-start justify-between md:justify-start transition-all duration-500 ease-out md:opacity-40 md:grayscale group-hover:opacity-100 group-hover:grayscale-0 md:group-hover:scale-105 bg-[rgba(255,255,255,0.03)] md:bg-transparent rounded-lg md:rounded-2xl p-4 md:p-6 border md:border-transparent md:group-hover:bg-[rgba(255,255,255,0.03)] md:group-hover:border-[rgba(255,255,255,0.1)] active:scale-[0.98] cursor-default md:min-w-[180px]"
           style={{ borderColor: `rgba(${hexToRgb(accent)}, 0.2)` }}
         >
           <div className="flex flex-col md:w-full items-start" style={{ alignItems: ar ? "flex-start" : "flex-start" }}>
-            <small className="text-[#9b948a] text-[11px] md:text-[13px] mb-0 md:mb-1">{ar ? item.price_label_ar : item.price_label_en}</small>
+            <small className="text-[#9b948a] text-[12px] md:text-sm mb-0 md:mb-2">{ar ? item.price_label_ar : item.price_label_en}</small>
             <div className="flex items-baseline gap-1.5 md:gap-2">
-              <strong className="text-xl md:text-[28px] font-extrabold leading-none" style={{ color: accent }}>
+              <strong className="text-2xl md:text-[36px] font-extrabold leading-none tracking-tight" style={{ color: accent }}>
                 <AnimatedNumber value={formattedPrice} />
               </strong>
-              <span className="text-[11px] md:text-sm font-semibold" style={{ color: accent }}>
+              <span className="text-[12px] md:text-base font-bold" style={{ color: accent }}>
                 {currency === "USD" ? "USD" : (unit || item.currency)}
               </span>
             </div>
-            {note && <em className="text-[10px] md:text-xs text-[#9b948a] mt-0.5 md:mt-1.5 not-italic hidden md:block">{note}</em>}
+            {note && <em className="text-[11px] md:text-sm text-[#9b948a] mt-1 md:mt-3 not-italic hidden md:block">{note}</em>}
           </div>
-          {note && <em className="text-[10px] text-[#9b948a] mt-0 not-italic block md:hidden text-right max-w-[100px] leading-tight">{note}</em>}
+          {note && <em className="text-[11px] text-[#9b948a] mt-0 not-italic block md:hidden text-right leading-tight max-w-[120px]">{note}</em>}
         </div>
       </div>
     </article>
