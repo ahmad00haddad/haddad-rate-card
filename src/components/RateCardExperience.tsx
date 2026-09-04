@@ -653,7 +653,7 @@ function PricingRow({ item, language, currency, region, accent = '#b72534' }: { 
 
         {/* PRICE SECOND: Muted until hovered on desktop, always visible but compact on mobile */}
         <div 
-          className="w-full md:w-auto flex flex-row md:flex-col items-center md:items-start justify-between md:justify-start transition-all duration-500 ease-out md:opacity-40 md:grayscale group-hover:opacity-100 group-hover:grayscale-0 md:group-hover:scale-105 bg-[rgba(255,255,255,0.03)] md:bg-transparent rounded-lg md:rounded-2xl p-4 md:p-6 border md:border-transparent md:group-hover:bg-[rgba(255,255,255,0.03)] md:group-hover:border-[rgba(255,255,255,0.1)] active:scale-[0.98] cursor-default md:min-w-[180px]"
+          className="w-full md:w-auto flex flex-row md:flex-col items-center md:items-start justify-between md:justify-start transition-all duration-500 ease-out md:opacity-100 md:grayscale-0 group-hover:opacity-100 group-hover:grayscale-0 md:group-hover:scale-105 bg-[rgba(255,255,255,0.03)] md:bg-transparent rounded-lg md:rounded-2xl p-4 md:p-6 border md:border-transparent md:group-hover:bg-[rgba(255,255,255,0.03)] md:group-hover:border-[rgba(255,255,255,0.1)] active:scale-[0.98] cursor-default md:min-w-[180px]"
           style={{ borderColor: `rgba(${hexToRgb(accent)}, 0.2)` }}
         >
           <div className="flex flex-col md:w-full items-start" style={{ alignItems: ar ? "flex-start" : "flex-start" }}>
