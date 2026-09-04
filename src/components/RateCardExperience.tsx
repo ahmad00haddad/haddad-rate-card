@@ -659,7 +659,7 @@ function PricingRow({ item, language, currency, region, accent = '#b72534' }: { 
           <div className="flex flex-col md:w-full items-start" style={{ alignItems: ar ? "flex-start" : "flex-start" }}>
             <small className="text-[#bdb3a0] text-[12px] md:text-sm mb-0 md:mb-2">{ar ? item.price_label_ar : item.price_label_en}</small>
             <div className="flex items-baseline gap-1.5 md:gap-2">
-              <strong className="text-2xl md:text-[36px] font-extrabold leading-none tracking-tight" style={{ color: accent }}>
+              <strong className="text-2xl md:text-[36px] font-extrabold leading-none tracking-tight" style={{ color: accent }} dir="ltr">
                 <AnimatedNumber value={formattedPrice} />
               </strong>
               <span className="text-[12px] md:text-base font-bold" style={{ color: accent }}>
