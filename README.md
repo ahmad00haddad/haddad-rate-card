@@ -1,33 +1,46 @@
-# rate card haddad
+﻿
+# 🎬 Ahmad Haddad | Interactive Rate Card
 
-اذهب الى الجوجل درايف سوف تجد هناك ملف اسمه website 
-الملف الموجود هنالك index.html هو الاساس , هو عباره عن rate card
-اريد نسخه الى هنا وعمل ويبسايت منه , التصميم يعجبني , وكل شيء يعجبني ,فقط اريدك نسخه وعمل ويبسايت جميل
-عند الانتهاء سوف ندخل الى الملف الاخر  equipment public_html
-هذا الملف كان عباره عن ويبسايت خاص ب اجار المعدات الخاصه بي , الان لا اريد ان اقوم بعملية الاجار , لكن اريد ان يبقى معرض للمعدات الخاصه بي , داخل الويبسايت الجديد , ف اريد تضمين المعدات نفسها , وقد ارفقت ملف sql ايضا في الدرايف سوف تجده  وملف csv ايضا ..
-لا تنسى صفحة الادمن الموجوده هناك ايضا
-يعجبني كل شيء بهم , لكن فقط اريد دمجهم ب ويبسايت واحد منمق و الغاء فكرة الاجار , فقط صفحة للعرض 
-وصفحة الادمن لعمل التعديلات اللازمه من اضافه وحذف وتعديل وغيره من الامور
+> **تجربة تسعير سينمائية وتفاعلية متكاملة، مصممة خصيصاً لخدمات الإنتاج الفني والإخراج.**
+> *A cinematic, interactive pricing experience tailored for high-end filmmaking and directing services.*
 
-This project was built with [Lovable](https://lovable.dev).
+---
 
-**Live app**: https://haddad-rate-card.lovable.app
+## 🌟 عن المشروع (About)
 
-## Build with Lovable
+هذا المشروع هو نقلة نوعية من قائمة الأسعار التقليدية (PDF Rate Card) إلى **تطبيق ويب تفاعلي ذكي**. 
+يهدف إلى منح العملاء تجربة استكشاف سلسة لخدمات تصوير الفيديو، صناعة الأفلام، والمونتاج، مع عرض دقيق للأسعار بناءً على مكان التصوير، بشفافية تامة وبدون أي رسوم خفية.
 
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/b93515cc-eacb-4079-ae15-243d3afb6857).
+تم بناء واجهة المستخدم بعناية لتعكس **الهوية البصرية الخاصة بالمخرج أحمد حداد** (اللون الأحمر السينمائي، الأسود الحبري، مع تأثير التشويش السينمائي Film Grain)، ليعيش العميل جو الإبداع منذ اللحظة الأولى.
 
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
+---
 
-## Development
+## ✨ الميزات الرئيسية (Features)
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+### 🧑‍💻 تجربة العميل (Client UI)
+- 🗺️ **تسعير ديناميكي (Dynamic Pricing):** تتغير الأسعار فوراً وبشكل آلي بناءً على منطقة التصوير المختارة (مثل: إربد أو عمّان).
+- 🎨 **هوية بصرية سينمائية (Cinematic Branding):** تصميم داكن أنيق (Dark Mode) يعتمد على تباين الألوان مع تأثيرات (Film Grain) لحماية الطابع السينمائي.
+- ⚡ **تفاعلات ذكية (Micro-interactions):** تأثيرات حركية لظهور الكروت (Staggered Animations)، وعدادات رقمية متحركة للأسعار، وشريط ملخص ذكي (Sticky Bar) يرافق العميل.
+- 💱 **تبديل العملات (Currency Toggle):** تحويل فوري ودقيق بين الدينار الأردني (JOD) والدولار الأمريكي (USD).
+- 📋 **شفافية مطلقة:** قسم خاص ومبسط يعرض "سياسات العمل" (Policies) و "ماذا يشمل السعر" للإجابة على تساؤلات العميل قبل أن يسأل.
 
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
-```
+### 🔐 لوحة الإدارة (Admin Dashboard)
+- 📊 **تعديل حي للأسعار (Live Editor):** لوحة تحكم مدمجة وسريعة تسمح بتعديل الأسعار والمسميات في ثوانٍ.
+- 🛡️ **حماية ذكية للأسعار (Price Guards):** نظام تحذير آلي (Heatmap Dots) ينبه الإدارة إذا تم إدخال سعر بعيد جداً عن متوسط أسعار نفس القسم لتفادي الأخطاء المطبعية.
+- 🔍 **معاينة الفروقات (Inline Diff):** عرض ذكي يقارن بين القيمة القديمة والجديدة قبل اعتماد النشر.
+- 🔎 **بحث وتصفية (Quick Search):** فلترة فورية للخدمات لتسريع عملية التحديث.
+
+---
+
+## 💻 التقنيات المستخدمة (Tech Stack)
+
+- **Frontend:** React, TypeScript, Vite, TanStack Router
+- **Styling:** Tailwind CSS (Custom CSS Variables & Design System)
+- **Deployment:** Cloudflare Workers (Nitro SSR/SSG)
+
+---
+
+<div dir="rtl">
+<i>"أصنع أفلاماً قصيرة وإعلانات بصرية بلمسة سينمائية أصيلة. هوية أصيلة.. لا نسخ ولا تكرار."</i> — <b>أحمد حداد</b>
+</div>
+
