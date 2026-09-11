@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { trackEvent } from "@/lib/analytics";
 import {
   formatPricingAmount,
+  pickLang,
   pricingSections,
   regionLabel,
   type PricingItem,
@@ -706,7 +707,7 @@ function PolicyStrip({ language }: { language: PricingLanguage }) {
               <article key={policy.en} style={{ padding: 16, background: "rgba(255,255,255,0.03)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.05)" }}>
                 <span style={{ display: "block", fontSize: 24, marginBottom: 8 }}>{policy.icon}</span>
                 <h3 style={{ margin: "0 0 4px 0", fontSize: 15, color: "#f2e4d4" }}>{ar ? policy.ar : policy.en}</h3>
-                <strong style={{ display: "block", color: "#b72534", marginBottom: 4 }}>{policy.value}</strong>
+                <strong style={{ display: "block", color: "#b72534", marginBottom: 4 }} dir={ar ? "rtl" : "ltr"}>{ar ? policy.valueAr : policy.valueEn}</strong>
                 <p style={{ margin: 0, fontSize: 13, color: "#bdb3a0", lineHeight: 1.5 }}>{ar ? policy.descAr : policy.descEn}</p>
               </article>
             ))}
