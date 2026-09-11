@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { trackEvent } from "@/lib/analytics";
 import {
   formatPricingAmount,
+  pickLang,
   pricingSections,
   regionLabel,
   type PricingItem,
@@ -20,18 +21,18 @@ type RateCardExperienceProps = {
 };
 
 const policies = [
-  { icon: "✏️", ar: "تعديلان مجاناً", en: "2 free revisions", value: "2", descAr: "ثم 25 JOD لكل جلسة إضافية", descEn: "Then 25 JOD per extra session" },
-  { icon: "✂️", ar: "نطاق التعديل", en: "Scope of Edits", value: "القص والألوان", descAr: "التعديل لا يشمل تغيير الفكرة أو إعادة التصوير", descEn: "Edits do not include changing core idea or reshoots" },
-  { icon: "⏳", ar: "وقت المراجعة", en: "Feedback Window", value: "7 أيام", descAr: "لإرسال الملاحظات على النسخة الأولية", descEn: "To send feedback after receiving the draft" },
-  { icon: "🚫", ar: "تسليم العمل", en: "Final Delivery", value: "بعد الدفع", descAr: "النسخة النهائية تُسلم بعد سداد كامل المبلغ", descEn: "Final video is delivered after full payment" },
-  { icon: "💾", ar: "الملفات الخام", en: "Raw Footage", value: "+50%", descAr: "لا تُسلم مجاناً، وتُباع بنصف قيمة المشروع", descEn: "Not free, sold at half the project value" },
-  { icon: "🗑️", ar: "حفظ المشاريع", en: "Data Retention", value: "30 يوماً", descAr: "يتم حذف ملفات المشروع بعد 30 يوماً من التسليم", descEn: "Project files are deleted 30 days after delivery" },
-  { icon: "🎵", ar: "الأصول الإضافية", en: "Extra Assets", value: "مستقلة", descAr: "التعليق الصوتي والموسيقى الخاصة تكلفتها منفصلة", descEn: "Voiceovers and licensed music are billed separately" },
-  { icon: "📦", ar: "مدة التسليم", en: "Delivery", value: "7–14", descAr: "يوم عمل بعد التصوير", descEn: "working days after wrap" },
-  { icon: "⚡", ar: "تسليم مستعجل", en: "Rush delivery", value: "+50%", descAr: "خلال 3 أيام أو أقل", descEn: "within 3 days or less" },
-  { icon: "🔧", ar: "المعدات", en: "Equipment", value: "✓", descAr: "مشمولة في سعر التصوير", descEn: "Included in shoot price" },
-  { icon: "💰", ar: "دفعة مقدمة", en: "Deposit", value: "50%", descAr: "لتأكيد الحجز", descEn: "To confirm booking" },
-  { icon: "📍", ar: "خارج إربد", en: "Outside Irbid", value: "+", descAr: "رسوم تنقل حسب المسافة", descEn: "Travel fees by distance" },
+  { icon: "✏️", ar: "تعديلان مجاناً", en: "2 free revisions", valueAr: "2", valueEn: "2", descAr: "ثم 25 JOD لكل جلسة إضافية", descEn: "Then 25 JOD per extra session" },
+  { icon: "✂️", ar: "نطاق التعديل", en: "Scope of Edits", valueAr: "القص والألوان", valueEn: "Cuts & color", descAr: "التعديل لا يشمل تغيير الفكرة أو إعادة التصوير", descEn: "Edits do not include changing core idea or reshoots" },
+  { icon: "⏳", ar: "وقت المراجعة", en: "Feedback Window", valueAr: "7 أيام", valueEn: "7 days", descAr: "لإرسال الملاحظات على النسخة الأولية", descEn: "To send feedback after receiving the draft" },
+  { icon: "🚫", ar: "تسليم العمل", en: "Final Delivery", valueAr: "بعد الدفع", valueEn: "After payment", descAr: "النسخة النهائية تُسلم بعد سداد كامل المبلغ", descEn: "Final video is delivered after full payment" },
+  { icon: "💾", ar: "الملفات الخام", en: "Raw Footage", valueAr: "+50%", valueEn: "+50%", descAr: "لا تُسلم مجاناً، وتُباع بنصف قيمة المشروع", descEn: "Not free, sold at half the project value" },
+  { icon: "🗑️", ar: "حفظ المشاريع", en: "Data Retention", valueAr: "30 يوماً", valueEn: "30 days", descAr: "يتم حذف ملفات المشروع بعد 30 يوماً من التسليم", descEn: "Project files are deleted 30 days after delivery" },
+  { icon: "🎵", ar: "الأصول الإضافية", en: "Extra Assets", valueAr: "مستقلة", valueEn: "Billed separately", descAr: "التعليق الصوتي والموسيقى الخاصة تكلفتها منفصلة", descEn: "Voiceovers and licensed music are billed separately" },
+  { icon: "📦", ar: "مدة التسليم", en: "Delivery", valueAr: "7–14 يوم", valueEn: "7–14 days", descAr: "يوم عمل بعد التصوير", descEn: "working days after wrap" },
+  { icon: "⚡", ar: "تسليم مستعجل", en: "Rush delivery", valueAr: "+50%", valueEn: "+50%", descAr: "خلال 3 أيام أو أقل", descEn: "within 3 days or less" },
+  { icon: "🔧", ar: "المعدات", en: "Equipment", valueAr: "✓", valueEn: "✓", descAr: "مشمولة في سعر التصوير", descEn: "Included in shoot price" },
+  { icon: "💰", ar: "دفعة مقدمة", en: "Deposit", valueAr: "50%", valueEn: "50%", descAr: "لتأكيد الحجز", descEn: "To confirm booking" },
+  { icon: "📍", ar: "خارج إربد", en: "Outside Irbid", valueAr: "+", valueEn: "+", descAr: "رسوم تنقل حسب المسافة", descEn: "Travel fees by distance" },
 ];
 
 const sectionColors: Record<string, string> = {
@@ -205,6 +206,19 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
+
+  // Keep the document direction/lang in sync with the selected language.
+  useEffect(() => {
+    const root = document.documentElement;
+    const prevDir = root.getAttribute("dir");
+    const prevLang = root.getAttribute("lang");
+    root.setAttribute("dir", rtl ? "rtl" : "ltr");
+    root.setAttribute("lang", rtl ? "ar" : "en");
+    return () => {
+      if (prevDir) root.setAttribute("dir", prevDir);
+      if (prevLang) root.setAttribute("lang", prevLang);
+    };
+  }, [rtl]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStartX(e.touches[0].clientX);
@@ -526,7 +540,7 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
                     </span>
                     <div style={{ textAlign: "center" }}>
                       <strong style={{ display: "block", fontSize: 18, color: "#f2e4d4", transition: "color 0.3s" }} className="group-hover:text-white">{text(entry.ar, entry.en)}</strong>
-                      <small style={{ color: "#bdb3a0", fontSize: 13, transition: "color 0.3s" }} className="group-hover:!text-[var(--hover-text)]">{entry.en}</small>
+                      <small style={{ color: "#bdb3a0", fontSize: 13, transition: "color 0.3s" }} className="group-hover:!text-[var(--hover-text)]" dir={rtl ? "ltr" : "rtl"}>{text(entry.en, entry.ar)}</small>
                     </div>
                     {/* Hover preview */}
                     <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 absolute -bottom-4 left-0 right-0 flex justify-center translate-y-2 group-hover:translate-y-0" style={{ pointerEvents: 'none', zIndex: 10 }}>
@@ -613,9 +627,12 @@ function RegionButton({ region, language, onClick }: { region: Exclude<PricingRe
 
 function PricingRow({ item, language, currency, region, accent = '#b72534' }: { item: PricingItem; language: PricingLanguage, currency: "JOD" | "USD", region: Exclude<PricingRegion, "both">, accent?: string }) {
   const ar = language === "ar";
-  const unit = ar ? item.unit_ar : item.unit_en;
-  const note = ar ? item.note_ar : item.note_en;
-  const title = ar ? item.name_ar : item.name_en;
+  const unit = pickLang(language, item.unit_ar, item.unit_en);
+  const note = pickLang(language, item.note_ar, item.note_en);
+  const title = pickLang(language, item.name_ar, item.name_en);
+  const desc = pickLang(language, item.desc_ar, item.desc_en);
+  const tag = pickLang(language, item.tag_ar, item.tag_en);
+  const priceLabel = pickLang(language, item.price_label_ar, item.price_label_en);
   
   // Format price based on currency
   const convert = (val: number | null) => val ? Math.round(val * 1.41) : null;
@@ -628,7 +645,7 @@ function PricingRow({ item, language, currency, region, accent = '#b72534' }: { 
       formattedPrice = min == null ? "" : max != null && max !== min ? `${min} - ${max}` : String(min);
     }
   } else {
-    formattedPrice = formatPricingAmount(item);
+    formattedPrice = formatPricingAmount(item, language);
   }
 
   return (
@@ -640,14 +657,14 @@ function PricingRow({ item, language, currency, region, accent = '#b72534' }: { 
         
         {/* VALUE FIRST: Title and Description take precedence */}
         <div className="flex-1 w-full md:min-w-[300px]">
-          {item.is_featured && (ar ? item.tag_ar : item.tag_en) && (
+          {item.is_featured && tag && (
             <span className="inline-block text-[10px] md:text-xs uppercase tracking-wider px-2 py-1 rounded mb-3 font-bold" style={{ background: `rgba(${hexToRgb(accent)}, 0.1)`, color: accent }}>
-              {ar ? item.tag_ar : item.tag_en}
+              {tag}
             </span>
           )}
           <h3 className="text-xl md:text-3xl font-extrabold text-[#f2e4d4] m-0 mb-2 md:mb-3 leading-tight">{title}</h3>
           <p className="text-[14px] md:text-base font-normal text-[#bdb3a0] m-0 leading-relaxed line-clamp-3 md:line-clamp-none max-w-3xl">
-            {ar ? item.desc_ar : item.desc_en}
+            {desc}
           </p>
         </div>
 
@@ -657,7 +674,7 @@ function PricingRow({ item, language, currency, region, accent = '#b72534' }: { 
           style={{ borderColor: `rgba(${hexToRgb(accent)}, 0.2)` }}
         >
           <div className="flex flex-col md:w-full items-start" style={{ alignItems: ar ? "flex-start" : "flex-start" }}>
-            <small className="text-[#bdb3a0] text-[12px] md:text-sm mb-0 md:mb-2">{ar ? item.price_label_ar : item.price_label_en}</small>
+            <small className="text-[#bdb3a0] text-[12px] md:text-sm mb-0 md:mb-2">{priceLabel}</small>
             <div className="flex items-baseline gap-1.5 md:gap-2">
               <strong className="text-2xl md:text-[36px] font-extrabold leading-none tracking-tight" style={{ color: accent }} dir="ltr">
                 <AnimatedNumber value={formattedPrice} />
@@ -668,7 +685,7 @@ function PricingRow({ item, language, currency, region, accent = '#b72534' }: { 
             </div>
             {note && <em className="text-[11px] md:text-sm text-[#bdb3a0] mt-1 md:mt-3 not-italic hidden md:block">{note}</em>}
           </div>
-          {note && <em className="text-[11px] text-[#bdb3a0] mt-0 not-italic block md:hidden text-right leading-tight max-w-[120px]">{note}</em>}
+          {note && <em className={`text-[11px] text-[#bdb3a0] mt-0 not-italic block md:hidden leading-tight max-w-[120px] ${ar ? "text-right" : "text-left"}`}>{note}</em>}
         </div>
       </div>
     </article>
@@ -693,7 +710,7 @@ function PolicyStrip({ language }: { language: PricingLanguage }) {
               {ar ? "تعديلان مجاناً · التسليم 7-14 يوم · المعدات مشمولة" : "2 free revisions · Delivery 7-14 days · Equipment included"}
             </span>
           </div>
-          <span style={{ color: "#b72534", fontSize: 13, whiteSpace: "nowrap", marginLeft: 16 }}>{ar ? "عرض التفاصيل ↓" : "View details ↓"}</span>
+          <span style={{ color: "#b72534", fontSize: 13, whiteSpace: "nowrap", marginInlineStart: 16 }}>{ar ? "عرض التفاصيل ↓" : "View details ↓"}</span>
         </div>
       ) : (
         <div style={{ opacity: 1, transition: "opacity 0.3s ease" }}>
@@ -706,7 +723,7 @@ function PolicyStrip({ language }: { language: PricingLanguage }) {
               <article key={policy.en} style={{ padding: 16, background: "rgba(255,255,255,0.03)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.05)" }}>
                 <span style={{ display: "block", fontSize: 24, marginBottom: 8 }}>{policy.icon}</span>
                 <h3 style={{ margin: "0 0 4px 0", fontSize: 15, color: "#f2e4d4" }}>{ar ? policy.ar : policy.en}</h3>
-                <strong style={{ display: "block", color: "#b72534", marginBottom: 4 }}>{policy.value}</strong>
+                <strong style={{ display: "block", color: "#b72534", marginBottom: 4 }} dir={ar ? "rtl" : "ltr"}>{ar ? policy.valueAr : policy.valueEn}</strong>
                 <p style={{ margin: 0, fontSize: 13, color: "#bdb3a0", lineHeight: 1.5 }}>{ar ? policy.descAr : policy.descEn}</p>
               </article>
             ))}
@@ -762,7 +779,7 @@ function ValuePropositionStrip({ language }: { language: PricingLanguage }) {
               {ar ? 'معدات سينمائية · تنقل مجاني · جودة عالية' : 'Cinematic gear · Free transport · High quality'}
             </span>
           </div>
-          <span style={{ fontSize: 13, whiteSpace: 'nowrap', marginLeft: 16, fontWeight: 600 }}>{ar ? 'عرض التفاصيل ↓' : 'View details ↓'}</span>
+          <span style={{ fontSize: 13, whiteSpace: 'nowrap', marginInlineStart: 16, fontWeight: 600 }}>{ar ? 'عرض التفاصيل ↓' : 'View details ↓'}</span>
         </div>
       ) : (
         <div style={{ opacity: 1, transition: 'opacity 0.3s ease' }}>
