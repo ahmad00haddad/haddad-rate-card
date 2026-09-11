@@ -645,7 +645,7 @@ function PricingRow({ item, language, currency, region, accent = '#b72534' }: { 
       formattedPrice = min == null ? "" : max != null && max !== min ? `${min} - ${max}` : String(min);
     }
   } else {
-    formattedPrice = formatPricingAmount(item);
+    formattedPrice = formatPricingAmount(item, language);
   }
 
   return (
@@ -657,14 +657,14 @@ function PricingRow({ item, language, currency, region, accent = '#b72534' }: { 
         
         {/* VALUE FIRST: Title and Description take precedence */}
         <div className="flex-1 w-full md:min-w-[300px]">
-          {item.is_featured && (ar ? item.tag_ar : item.tag_en) && (
+          {item.is_featured && tag && (
             <span className="inline-block text-[10px] md:text-xs uppercase tracking-wider px-2 py-1 rounded mb-3 font-bold" style={{ background: `rgba(${hexToRgb(accent)}, 0.1)`, color: accent }}>
-              {ar ? item.tag_ar : item.tag_en}
+              {tag}
             </span>
           )}
           <h3 className="text-xl md:text-3xl font-extrabold text-[#f2e4d4] m-0 mb-2 md:mb-3 leading-tight">{title}</h3>
           <p className="text-[14px] md:text-base font-normal text-[#bdb3a0] m-0 leading-relaxed line-clamp-3 md:line-clamp-none max-w-3xl">
-            {ar ? item.desc_ar : item.desc_en}
+            {desc}
           </p>
         </div>
 
@@ -674,7 +674,7 @@ function PricingRow({ item, language, currency, region, accent = '#b72534' }: { 
           style={{ borderColor: `rgba(${hexToRgb(accent)}, 0.2)` }}
         >
           <div className="flex flex-col md:w-full items-start" style={{ alignItems: ar ? "flex-start" : "flex-start" }}>
-            <small className="text-[#bdb3a0] text-[12px] md:text-sm mb-0 md:mb-2">{ar ? item.price_label_ar : item.price_label_en}</small>
+            <small className="text-[#bdb3a0] text-[12px] md:text-sm mb-0 md:mb-2">{priceLabel}</small>
             <div className="flex items-baseline gap-1.5 md:gap-2">
               <strong className="text-2xl md:text-[36px] font-extrabold leading-none tracking-tight" style={{ color: accent }} dir="ltr">
                 <AnimatedNumber value={formattedPrice} />
@@ -685,7 +685,7 @@ function PricingRow({ item, language, currency, region, accent = '#b72534' }: { 
             </div>
             {note && <em className="text-[11px] md:text-sm text-[#bdb3a0] mt-1 md:mt-3 not-italic hidden md:block">{note}</em>}
           </div>
-          {note && <em className="text-[11px] text-[#bdb3a0] mt-0 not-italic block md:hidden text-right leading-tight max-w-[120px]">{note}</em>}
+          {note && <em className={`text-[11px] text-[#bdb3a0] mt-0 not-italic block md:hidden leading-tight max-w-[120px] ${ar ? "text-right" : "text-left"}`}>{note}</em>}
         </div>
       </div>
     </article>
@@ -710,7 +710,7 @@ function PolicyStrip({ language }: { language: PricingLanguage }) {
               {ar ? "تعديلان مجاناً · التسليم 7-14 يوم · المعدات مشمولة" : "2 free revisions · Delivery 7-14 days · Equipment included"}
             </span>
           </div>
-          <span style={{ color: "#b72534", fontSize: 13, whiteSpace: "nowrap", marginLeft: 16 }}>{ar ? "عرض التفاصيل ↓" : "View details ↓"}</span>
+          <span style={{ color: "#b72534", fontSize: 13, whiteSpace: "nowrap", marginInlineStart: 16 }}>{ar ? "عرض التفاصيل ↓" : "View details ↓"}</span>
         </div>
       ) : (
         <div style={{ opacity: 1, transition: "opacity 0.3s ease" }}>
@@ -779,7 +779,7 @@ function ValuePropositionStrip({ language }: { language: PricingLanguage }) {
               {ar ? 'معدات سينمائية · تنقل مجاني · جودة عالية' : 'Cinematic gear · Free transport · High quality'}
             </span>
           </div>
-          <span style={{ fontSize: 13, whiteSpace: 'nowrap', marginLeft: 16, fontWeight: 600 }}>{ar ? 'عرض التفاصيل ↓' : 'View details ↓'}</span>
+          <span style={{ fontSize: 13, whiteSpace: 'nowrap', marginInlineStart: 16, fontWeight: 600 }}>{ar ? 'عرض التفاصيل ↓' : 'View details ↓'}</span>
         </div>
       ) : (
         <div style={{ opacity: 1, transition: 'opacity 0.3s ease' }}>
