@@ -207,6 +207,19 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
+  // Keep the document direction/lang in sync with the selected language.
+  useEffect(() => {
+    const root = document.documentElement;
+    const prevDir = root.getAttribute("dir");
+    const prevLang = root.getAttribute("lang");
+    root.setAttribute("dir", rtl ? "rtl" : "ltr");
+    root.setAttribute("lang", rtl ? "ar" : "en");
+    return () => {
+      if (prevDir) root.setAttribute("dir", prevDir);
+      if (prevLang) root.setAttribute("lang", prevLang);
+    };
+  }, [rtl]);
+
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStartX(e.touches[0].clientX);
   };
@@ -527,7 +540,7 @@ export function RateCardExperience({ items, compact = false, initialRegion, isLo
                     </span>
                     <div style={{ textAlign: "center" }}>
                       <strong style={{ display: "block", fontSize: 18, color: "#f2e4d4", transition: "color 0.3s" }} className="group-hover:text-white">{text(entry.ar, entry.en)}</strong>
-                      <small style={{ color: "#bdb3a0", fontSize: 13, transition: "color 0.3s" }} className="group-hover:!text-[var(--hover-text)]">{entry.en}</small>
+                      <small style={{ color: "#bdb3a0", fontSize: 13, transition: "color 0.3s" }} className="group-hover:!text-[var(--hover-text)]" dir={rtl ? "ltr" : "rtl"}>{text(entry.en, entry.ar)}</small>
                     </div>
                     {/* Hover preview */}
                     <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 absolute -bottom-4 left-0 right-0 flex justify-center translate-y-2 group-hover:translate-y-0" style={{ pointerEvents: 'none', zIndex: 10 }}>
@@ -614,9 +627,12 @@ function RegionButton({ region, language, onClick }: { region: Exclude<PricingRe
 
 function PricingRow({ item, language, currency, region, accent = '#b72534' }: { item: PricingItem; language: PricingLanguage, currency: "JOD" | "USD", region: Exclude<PricingRegion, "both">, accent?: string }) {
   const ar = language === "ar";
-  const unit = ar ? item.unit_ar : item.unit_en;
-  const note = ar ? item.note_ar : item.note_en;
-  const title = ar ? item.name_ar : item.name_en;
+  const unit = pickLang(language, item.unit_ar, item.unit_en);
+  const note = pickLang(language, item.note_ar, item.note_en);
+  const title = pickLang(language, item.name_ar, item.name_en);
+  const desc = pickLang(language, item.desc_ar, item.desc_en);
+  const tag = pickLang(language, item.tag_ar, item.tag_en);
+  const priceLabel = pickLang(language, item.price_label_ar, item.price_label_en);
   
   // Format price based on currency
   const convert = (val: number | null) => val ? Math.round(val * 1.41) : null;
