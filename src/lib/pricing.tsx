@@ -20,7 +20,18 @@ export const pricingSections = [
   { key: "dayrate", icon: <Calendar />, ar: "اليومية", en: "Day Rate" },
 ];
 
-export function formatPricingAmount(item: PricingItem) {
+/** Pick a localized value, falling back to the other language when empty. */
+export function pickLang(
+  language: PricingLanguage,
+  ar: string | null | undefined,
+  en: string | null | undefined,
+): string {
+  const primary = language === "ar" ? ar : en;
+  const fallback = language === "ar" ? en : ar;
+  return (primary?.trim() || fallback?.trim() || "") as string;
+}
+
+export function formatPricingAmount(item: PricingItem, language: PricingLanguage = "ar") {
   if (item.price_min != null) {
     const min = Number(item.price_min).toLocaleString("en-US");
     if (item.price_max != null && Number(item.price_max) !== Number(item.price_min)) {
@@ -28,7 +39,7 @@ export function formatPricingAmount(item: PricingItem) {
     }
     return min;
   }
-  return item.price_text || "حسب المشروع";
+  return item.price_text || (language === "ar" ? "حسب المشروع" : "On request");
 }
 
 export function regionLabel(region: PricingRegion, language: PricingLanguage) {
