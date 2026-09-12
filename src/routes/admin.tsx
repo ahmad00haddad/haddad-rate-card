@@ -134,7 +134,7 @@ function NotAuthorized() {
 }
 
 function emptyForm(): Omit<Equipment, "id"> {
-  return { name: "", description: "", category: "", original_price: 0, image_path: "", is_available: true };
+  return { name: "", description: "", category: "", original_price: 0, image_path: "", is_available: true, daily_rental_price: 0, rental_percentage: 0 };
 }
 
 function AdminPanel() {
