@@ -53,8 +53,15 @@ function AdminPage() {
   useEffect(() => {
     if (!session) return;
     setChecking(true);
+    const timeout = setTimeout(() => { setIsAdmin(false); setChecking(false); }, 6000);
     supabase.from("user_roles").select("role").eq("user_id", session.user.id).eq("role", "admin").maybeSingle()
-      .then(({ data }) => { setIsAdmin(!!data); setChecking(false); });
+      .then(({ data, error }) => {
+        clearTimeout(timeout);
+        if (error) console.error("[admin] role check error:", error.message);
+        setIsAdmin(!!data);
+        setChecking(false);
+      });
+    return () => clearTimeout(timeout);
   }, [session]);
 
   return (
