@@ -138,11 +138,7 @@ function EquipmentPage() {
               <article className="equipment-card" key={item.id} style={{ "--card-delay": `${Math.min(index, 8) * 45}ms` } as React.CSSProperties}>
                 <div className="equipment-card__image">
                   <span className="equipment-card__number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
-                  {item.image_path ? (
-                    <img src={item.image_path} alt={item.name} loading="lazy" decoding="async" />
-                  ) : (
-                    <div className="equipment-card__placeholder"><Camera aria-hidden="true" /><span>{text("الصورة قريباً", "Image coming soon")}</span></div>
-                  )}
+                  <EquipmentImage src={item.image_path} alt={item.name} fallback={text("الصورة قريباً", "Image coming soon")} />
                 </div>
                 <div className="equipment-card__body">
                   {item.category && <span className="equipment-card__category">{item.category}</span>}
@@ -165,4 +161,16 @@ function EquipmentPage() {
 
 function EquipmentSkeleton() {
   return <div className="equipment-grid" aria-hidden="true">{Array.from({ length: 6 }).map((_, index) => <div className="equipment-card equipment-card--skeleton" key={index}><div /><span /><span /></div>)}</div>;
+}
+
+function EquipmentImage({ src, alt, fallback }: { src: string | null; alt: string; fallback: string }) {
+  const [failed, setFailed] = useState(!src);
+
+  useEffect(() => setFailed(!src), [src]);
+
+  if (failed || !src) {
+    return <div className="equipment-card__placeholder"><Camera aria-hidden="true" /><span>{fallback}</span></div>;
+  }
+
+  return <img src={src} alt={alt} loading="lazy" decoding="async" onError={() => setFailed(true)} />;
 }
