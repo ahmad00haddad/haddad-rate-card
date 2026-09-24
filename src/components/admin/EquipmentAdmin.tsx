@@ -56,9 +56,18 @@ export function EquipmentAdmin() {
     e.preventDefault();
     setSaving(true);
     const payload = { ...form, original_price: Number(form.original_price), daily_rental_price: Number(form.daily_rental_price) || 0, rental_percentage: Number(form.rental_percentage) || 0 };
-    const { error } = editing
-      ? await supabase.from("equipment").update(payload).eq("id", editing.id)
-      : await supabase.from("equipment").insert(payload);
+    
+    let error = null;
+    if (editing) {
+      const { error: updateError } = await supabase.from("equipment").update(payload).eq("id", editing.id);
+      error = updateError;
+    } else {
+      const { data: maxData } = await supabase.from("equipment").select("id").order("id", { ascending: false }).limit(1);
+      const nextId = (maxData?.[0]?.id || 0) + 1;
+      const { error: insertError } = await supabase.from("equipment").insert({ ...payload, id: nextId });
+      error = insertError;
+    }
+
     setSaving(false);
     if (error) { alert(error.message); return; }
     closeForm();
