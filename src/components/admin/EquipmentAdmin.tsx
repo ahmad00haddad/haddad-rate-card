@@ -117,8 +117,6 @@ export function EquipmentAdmin() {
     <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14 }}>
         <StatCard label="إجمالي المعدات" value={stats.total} />
-        <StatCard label="المتاحة" value={stats.available} accent="#3ddc97" />
-        <StatCard label="غير المتاحة" value={stats.unavailable} accent="#ef6c6c" />
         <StatCard label="عدد الفئات" value={stats.categories} />
         <StatCard label="القيمة الإجمالية" value={`${stats.totalValue.toLocaleString()} د.أ`} wide />
       </div>
@@ -183,10 +181,6 @@ export function EquipmentAdmin() {
                   {aiLoading ? "جاري التقدير…" : "✦ اقتراح السعر بالذكاء الاصطناعي"}
                 </button>
                 {aiMsg && <p style={{ fontSize: 12, color: aiMsg.startsWith("تم") ? "#86efac" : "#ef6c6c", margin: 0 }}>{aiMsg}</p>}
-                <label style={{ ...lbl, flexDirection: "row", alignItems: "center", gap: 8 }}>
-                  <input type="checkbox" checked={form.is_available} onChange={(e) => setForm({ ...form, is_available: e.target.checked })} />
-                  متوفر
-                </label>
                 <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
                   <button type="submit" disabled={saving} style={{ ...btnRed, flex: 1 }}>{saving ? "..." : editing ? "حفظ التعديلات" : "إضافة"}</button>
                   <button type="button" onClick={closeForm} style={btnSm}>إلغاء</button>
