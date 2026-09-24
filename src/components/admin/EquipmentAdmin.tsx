@@ -4,6 +4,7 @@ import { useServerFn } from '@tanstack/react-start';
 import { supabase } from '@/integrations/supabase/client';
 import { estimateEquipmentPrice } from '@/lib/equipment-ai.functions';
 import { normalizeAr } from '@/lib/ar-normalize';
+import { getCleanImageUrl } from '@/lib/image-utils';
 import { StatCard } from './StatCard';
 
 type Equipment = {
@@ -160,7 +161,7 @@ export function EquipmentAdmin() {
             {filtered.map((it) => (
               <div key={it.id} style={{ display: "flex", gap: 12, padding: 12, background: "#161616", border: "1px solid rgba(183,37,52,0.15)", borderRadius: 12 }}>
                 <div style={{ width: 80, height: 80, background: "#fff", flexShrink: 0, overflow: "hidden", borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center", padding: 4 }}>
-                  {it.image_path && <img src={it.image_path} alt={it.name} referrerPolicy="no-referrer" style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />}
+                  {it.image_path && <img src={getCleanImageUrl(it.image_path) || ""} alt={it.name} referrerPolicy="no-referrer" style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "baseline" }}>

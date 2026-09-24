@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { normalizeAr } from "@/lib/ar-normalize";
+import { getCleanImageUrl } from "@/lib/image-utils";
 
 export const Route = createFileRoute("/equipment")({
   head: () => ({
@@ -170,16 +171,6 @@ function EquipmentPage() {
 
 function EquipmentSkeleton() {
   return <div className="equipment-grid" aria-hidden="true">{Array.from({ length: 6 }).map((_, index) => <div className="equipment-card equipment-card--skeleton" key={index}><div /><span /><span /></div>)}</div>;
-}
-
-function getCleanImageUrl(url: string | null) {
-  if (!url) return null;
-  let clean = url;
-  if (clean.includes('/cdn-cgi/image/')) {
-    const parts = clean.split('/https://');
-    if (parts.length > 1) clean = 'https://' + parts[1];
-  }
-  return clean.replace('www.bhphotovideo.com', 'static.bhphoto.com');
 }
 
 function EquipmentImage({ src, alt, fallback }: { src: string | null; alt: string; fallback: string }) {
