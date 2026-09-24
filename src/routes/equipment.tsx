@@ -36,6 +36,7 @@ type Equipment = {
   category: string | null;
   image_path: string | null;
   is_available: boolean;
+  original_price: number;
 };
 
 type Language = "ar" | "en";
@@ -52,9 +53,9 @@ function EquipmentPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("equipment")
-        .select("id,name,description,category,image_path,is_available")
+        .select("id,name,description,category,image_path,is_available,original_price")
         .eq("is_available", true)
-        .order("category")
+        .order("original_price", { ascending: false })
         .order("id");
       if (error) throw error;
       return data as Equipment[];
