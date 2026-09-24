@@ -172,5 +172,5 @@ function EquipmentImage({ src, alt, fallback }: { src: string | null; alt: strin
     return <div className="equipment-card__placeholder"><Camera aria-hidden="true" /><span>{fallback}</span></div>;
   }
 
-  return <img src={src} alt={alt} loading="lazy" decoding="async" onError={() => setFailed(true)} />;
+  return <img src={src} alt={alt} referrerPolicy="no-referrer" loading="lazy" decoding="async" onError={() => setFailed(true)} />;
 }

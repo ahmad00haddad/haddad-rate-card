@@ -15,6 +15,7 @@ export function usePricingItems(includeHidden = false) {
       return data as PricingItem[];
     },
     staleTime: 30_000,
+    refetchOnWindowFocus: false,
   });
 
   useEffect(() => {
@@ -25,14 +26,11 @@ export function usePricingItems(includeHidden = false) {
       .subscribe();
     const browserChannel = typeof BroadcastChannel === "undefined" ? null : new BroadcastChannel(PRICING_CHANNEL);
     if (browserChannel) browserChannel.onmessage = refresh;
-    const onVisible = () => { if (document.visibilityState === "visible") refresh(); };
     window.addEventListener("online", refresh);
-    document.addEventListener("visibilitychange", onVisible);
     return () => {
       void supabase.removeChannel(realtime);
       browserChannel?.close();
       window.removeEventListener("online", refresh);
-      document.removeEventListener("visibilitychange", onVisible);
     };
   }, [includeHidden, queryClient]);
 
