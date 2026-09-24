@@ -42,13 +42,15 @@ export function EquipmentAdmin() {
   const [editing, setEditing] = useState<Equipment | null>(null);
   const [form, setForm] = useState<Omit<Equipment, "id">>(emptyForm());
   const [saving, setSaving] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [aiMsg, setAiMsg] = useState<string | null>(null);
   const runEstimate = useServerFn(estimateEquipmentPrice);
 
-  function startNew() { setEditing(null); setForm(emptyForm()); }
-  function startEdit(e: Equipment) { setEditing(e); const { id: _id, ...rest } = e; setForm({ ...rest, daily_rental_price: rest.daily_rental_price ?? 0, rental_percentage: rest.rental_percentage ?? 0 }); }
+  function closeForm() { setIsFormOpen(false); setEditing(null); setForm(emptyForm()); }
+  function startNew() { setEditing(null); setForm(emptyForm()); setIsFormOpen(true); }
+  function startEdit(e: Equipment) { setEditing(e); const { id: _id, ...rest } = e; setForm({ ...rest, daily_rental_price: rest.daily_rental_price ?? 0, rental_percentage: rest.rental_percentage ?? 0 }); setIsFormOpen(true); }
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -59,7 +61,7 @@ export function EquipmentAdmin() {
       : await supabase.from("equipment").insert(payload);
     setSaving(false);
     if (error) { alert(error.message); return; }
-    startNew();
+    closeForm();
     qc.invalidateQueries({ queryKey: ["equipment-admin"] });
     qc.invalidateQueries({ queryKey: ["equipment"] });
   }
@@ -121,7 +123,7 @@ export function EquipmentAdmin() {
         <StatCard label="القيمة الإجمالية" value={`${stats.totalValue.toLocaleString()} د.أ`} wide />
       </div>
 
-      <div className="admin-grid" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 300px", gap: 24, alignItems: "start" }}>
+      <div className="admin-grid" style={{ display: "grid", gridTemplateColumns: "1fr", gap: 24, alignItems: "start" }}>
         <section>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, gap: 10, flexWrap: "wrap" }}>
             <h2 style={{ color: "#f2e4d4", margin: 0, fontSize: 22 }}>المعدات ({filtered.length})</h2>
@@ -159,38 +161,44 @@ export function EquipmentAdmin() {
           </div>
         </section>
 
-        <aside style={{ position: "sticky", top: 90, background: "#161616", padding: 22, border: "1px solid rgba(183,37,52,0.2)", borderRadius: 12 }}>
-          <h3 style={{ color: "#f2e4d4", margin: "0 0 16px", fontSize: 20 }}>
-            {editing ? `تعديل #${editing.id}` : "إضافة معدّة جديدة"}
-          </h3>
-          <form onSubmit={save} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <label style={lbl}>الاسم<input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} style={input} /></label>
-            <label style={lbl}>الفئة<input value={form.category ?? ""} onChange={(e) => setForm({ ...form, category: e.target.value })} style={input} /></label>
-            <label style={lbl}>الوصف<textarea rows={3} value={form.description ?? ""} onChange={(e) => setForm({ ...form, description: e.target.value })} style={{ ...input, resize: "vertical" }} /></label>
-            <label style={lbl}>رابط الصورة<input value={form.image_path ?? ""} onChange={(e) => setForm({ ...form, image_path: e.target.value })} style={input} /></label>
-            <label style={lbl}>
-              سعر الشراء (د.أ)
-              <input type="number" step="0.01" value={form.original_price} onChange={(e) => setForm({ ...form, original_price: Number(e.target.value) })} style={input} />
-            </label>
-            <button type="button" onClick={aiEstimate} disabled={aiLoading} style={{ ...btnSm, padding: "10px 12px", opacity: aiLoading ? 0.6 : 1, width: '100%', boxSizing: 'border-box' }}>
-              {aiLoading ? "جاري التقدير…" : "✦ اقتراح السعر بالذكاء الاصطناعي"}
-            </button>
-            {aiMsg && <p style={{ fontSize: 12, color: aiMsg.startsWith("تم") ? "#86efac" : "#ef6c6c", margin: 0 }}>{aiMsg}</p>}
-            <label style={{ ...lbl, flexDirection: "row", alignItems: "center", gap: 8 }}>
-              <input type="checkbox" checked={form.is_available} onChange={(e) => setForm({ ...form, is_available: e.target.checked })} />
-              متوفر
-            </label>
-            <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-              <button type="submit" disabled={saving} style={{ ...btnRed, flex: 1 }}>{saving ? "..." : editing ? "حفظ التعديلات" : "إضافة"}</button>
-              {editing && <button type="button" onClick={startNew} style={btnSm}>إلغاء</button>}
-            </div>
-          </form>
-        </aside>
+        {isFormOpen && (
+          <div style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: 20, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }} onClick={(e) => { if (e.target === e.currentTarget) closeForm(); }}>
+            <aside style={{ background: "#161616", padding: 24, border: "1px solid rgba(183,37,52,0.2)", borderRadius: 12, width: "100%", maxWidth: 420, maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 50px rgba(0,0,0,0.5)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                <h3 style={{ color: "#f2e4d4", margin: 0, fontSize: 20 }}>
+                  {editing ? `تعديل #${editing.id}` : "إضافة معدّة جديدة"}
+                </h3>
+                <button type="button" onClick={closeForm} style={{ background: "none", border: "none", color: "#bdb3a0", fontSize: 24, cursor: "pointer", lineHeight: 1 }}>&times;</button>
+              </div>
+              <form onSubmit={save} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                <label style={lbl}>الاسم<input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} style={input} /></label>
+                <label style={lbl}>الفئة<input value={form.category ?? ""} onChange={(e) => setForm({ ...form, category: e.target.value })} style={input} /></label>
+                <label style={lbl}>الوصف<textarea rows={3} value={form.description ?? ""} onChange={(e) => setForm({ ...form, description: e.target.value })} style={{ ...input, resize: "vertical" }} /></label>
+                <label style={lbl}>رابط الصورة<input value={form.image_path ?? ""} onChange={(e) => setForm({ ...form, image_path: e.target.value })} style={input} /></label>
+                <label style={lbl}>
+                  سعر الشراء (د.أ)
+                  <input type="number" step="0.01" value={form.original_price} onChange={(e) => setForm({ ...form, original_price: Number(e.target.value) })} style={input} />
+                </label>
+                <button type="button" onClick={aiEstimate} disabled={aiLoading} style={{ ...btnSm, padding: "10px 12px", opacity: aiLoading ? 0.6 : 1, width: '100%', boxSizing: 'border-box' }}>
+                  {aiLoading ? "جاري التقدير…" : "✦ اقتراح السعر بالذكاء الاصطناعي"}
+                </button>
+                {aiMsg && <p style={{ fontSize: 12, color: aiMsg.startsWith("تم") ? "#86efac" : "#ef6c6c", margin: 0 }}>{aiMsg}</p>}
+                <label style={{ ...lbl, flexDirection: "row", alignItems: "center", gap: 8 }}>
+                  <input type="checkbox" checked={form.is_available} onChange={(e) => setForm({ ...form, is_available: e.target.checked })} />
+                  متوفر
+                </label>
+                <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                  <button type="submit" disabled={saving} style={{ ...btnRed, flex: 1 }}>{saving ? "..." : editing ? "حفظ التعديلات" : "إضافة"}</button>
+                  <button type="button" onClick={closeForm} style={btnSm}>إلغاء</button>
+                </div>
+              </form>
+            </aside>
+          </div>
+        )}
       </div>
       <style dangerouslySetInnerHTML={{__html: `
         @media (max-width: 768px) {
           .admin-grid { grid-template-columns: 1fr !important; }
-          aside { position: static !important; }
         }
       `}} />
     </div>
