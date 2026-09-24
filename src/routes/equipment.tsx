@@ -144,7 +144,6 @@ function EquipmentPage() {
                   {item.category && <span className="equipment-card__category">{item.category}</span>}
                   <h2>{item.name}</h2>
                   {item.description && <p>{item.description}</p>}
-                  <span className="equipment-card__detail">{text("ضمن تجهيزات الإنتاج", "Part of our production kit")}<ArrowUpLeft aria-hidden="true" /></span>
                 </div>
               </article>
             ))}
