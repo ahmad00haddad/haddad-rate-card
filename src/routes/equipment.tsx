@@ -162,14 +162,25 @@ function EquipmentSkeleton() {
   return <div className="equipment-grid" aria-hidden="true">{Array.from({ length: 6 }).map((_, index) => <div className="equipment-card equipment-card--skeleton" key={index}><div /><span /><span /></div>)}</div>;
 }
 
+function getCleanImageUrl(url: string | null) {
+  if (!url) return null;
+  let clean = url;
+  if (clean.includes('/cdn-cgi/image/')) {
+    const parts = clean.split('/https://');
+    if (parts.length > 1) clean = 'https://' + parts[1];
+  }
+  return clean.replace('www.bhphotovideo.com', 'static.bhphoto.com');
+}
+
 function EquipmentImage({ src, alt, fallback }: { src: string | null; alt: string; fallback: string }) {
-  const [failed, setFailed] = useState(!src);
+  const cleanSrc = getCleanImageUrl(src);
+  const [failed, setFailed] = useState(!cleanSrc);
 
-  useEffect(() => setFailed(!src), [src]);
+  useEffect(() => setFailed(!cleanSrc), [cleanSrc]);
 
-  if (failed || !src) {
+  if (failed || !cleanSrc) {
     return <div className="equipment-card__placeholder"><Camera aria-hidden="true" /><span>{fallback}</span></div>;
   }
 
-  return <img src={src} alt={alt} referrerPolicy="no-referrer" loading="lazy" decoding="async" onError={() => setFailed(true)} />;
+  return <img src={cleanSrc} alt={alt} loading="lazy" decoding="async" onError={() => setFailed(true)} />;
 }
