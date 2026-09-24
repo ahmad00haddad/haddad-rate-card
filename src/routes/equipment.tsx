@@ -142,7 +142,16 @@ function EquipmentPage() {
                   <EquipmentImage src={item.image_path} alt={item.name} fallback={text("الصورة قريباً", "Image coming soon")} />
                 </div>
                 <div className="equipment-card__body">
-                  {item.category && <span className="equipment-card__category">{item.category}</span>}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '8px' }}>
+                    {item.category ? (
+                      <span className="equipment-card__category" style={{ marginBottom: 0 }}>{item.category}</span>
+                    ) : <span />}
+                    {item.original_price != null && item.original_price > 0 && (
+                      <span style={{ fontSize: '10px', color: 'rgba(242,228,212,0.4)', fontWeight: 500 }} dir="rtl">
+                        {Number(item.original_price).toLocaleString()} د.أ
+                      </span>
+                    )}
+                  </div>
                   <h2>{item.name}</h2>
                   {item.description && <p>{item.description}</p>}
                 </div>
