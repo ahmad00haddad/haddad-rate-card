@@ -29,12 +29,13 @@ export function SiteHeader() {
       <nav style={{ display: "flex", gap: 14, alignItems: "center" }}>
         <a
           href="https://ahmadhaddad.lovable.app/"
+          className="elastic-press"
           style={{ ...navStyle, borderColor: "rgba(183,37,52,0.5)" }}
         >
           ← الموقع الرئيسي
         </a>
-        <Link to="/" style={navStyle}>التسعيرات</Link>
-        <Link to="/equipment" style={navStyle}>المعدات</Link>
+        <Link to="/" className="elastic-press" style={navStyle}>التسعيرات</Link>
+        <Link to="/equipment" className="elastic-press" style={navStyle}>المعدات</Link>
       </nav>
     </header>
   );
@@ -49,5 +50,4 @@ const navStyle = {
   letterSpacing: 1,
   padding: "8px 16px",
   textDecoration: "none",
-  transition: "all 0.3s",
 } as const;

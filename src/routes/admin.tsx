@@ -47,7 +47,7 @@ function AdminNav({ session }: { session: Session | null }) {
       </Link>
       <nav style={{ display: "flex", gap: 10, alignItems: "center" }}>
         {session && (
-          <button onClick={() => supabase.auth.signOut()} style={{ padding: "8px 16px", border: "1px solid rgba(183,37,52,0.35)", color: "#b72534", textDecoration: "none", fontSize: 13, fontWeight: 600, letterSpacing: 1, borderRadius: 6, cursor: "pointer", background: "transparent" }}>خروج</button>
+          <button onClick={() => supabase.auth.signOut()} className="elastic-press" style={{ padding: "8px 16px", border: "1px solid rgba(183,37,52,0.35)", color: "#b72534", textDecoration: "none", fontSize: 13, fontWeight: 600, letterSpacing: 1, borderRadius: 6, cursor: "pointer", background: "transparent" }}>خروج</button>
         )}
       </nav>
     </header>
@@ -63,12 +63,12 @@ function TabBar({ active, onChange }: { active: Tab; onChange: (t: Tab) => void 
   return (
     <div style={{ display: 'flex', gap: 8, borderBottom: '1px solid rgba(242,228,212,0.1)', paddingBottom: 0, overflowX: 'auto' }}>
       {tabs.map(t => (
-        <button key={t.id} onClick={() => onChange(t.id)}
+        <button key={t.id} onClick={() => onChange(t.id)} className="elastic-press"
           style={{
             background: 'none', border: 'none', borderBottom: active === t.id ? '2px solid #b72534' : '2px solid transparent',
             color: active === t.id ? '#f2e4d4' : '#bdb3a0',
             padding: '12px 20px', cursor: 'pointer', fontSize: 14, fontWeight: active === t.id ? 700 : 400,
-            fontFamily: 'inherit', marginBottom: -1, transition: 'all 0.2s ease', whiteSpace: 'nowrap'
+            fontFamily: 'inherit', marginBottom: -1, whiteSpace: 'nowrap'
           }}>
           {t.icon} {t.label}
         </button>

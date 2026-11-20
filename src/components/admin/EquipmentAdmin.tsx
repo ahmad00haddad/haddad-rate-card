@@ -148,7 +148,7 @@ export function EquipmentAdmin() {
         <section>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, gap: 10, flexWrap: "wrap" }}>
             <h2 style={{ color: "#f2e4d4", margin: 0, fontSize: 22 }}>المعدات ({filtered.length})</h2>
-            <button onClick={startNew} style={btnRed}>+ إضافة معدّة</button>
+            <button onClick={startNew} className="elastic-press" style={btnRed}>+ إضافة معدّة</button>
           </div>
           <div className="admin-two-col" style={{ display: "grid", gridTemplateColumns: "1fr 200px", gap: 10, marginBottom: 14 }}>
             <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="بحث..." style={input} />
@@ -172,8 +172,8 @@ export function EquipmentAdmin() {
                   <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
                     <span style={{ fontSize: 12, color: "#cfc8bd" }}>السعر: <strong style={{ color: "#f2e4d4" }}>{Number(it.original_price).toLocaleString()} د.أ</strong></span>
                     <span style={{ flex: 1 }} />
-                    <button onClick={() => startEdit(it)} style={btnSm}>تعديل</button>
-                    <button onClick={() => remove(it.id)} style={{ ...btnSm, borderColor: "#ef6c6c", color: "#ef6c6c" }}>حذف</button>
+                    <button onClick={() => startEdit(it)} className="elastic-press" style={btnSm}>تعديل</button>
+                    <button onClick={() => remove(it.id)} className="elastic-press" style={{ ...btnSm, borderColor: "#ef6c6c", color: "#ef6c6c" }}>حذف</button>
                   </div>
                 </div>
               </div>
@@ -184,7 +184,7 @@ export function EquipmentAdmin() {
 
         {isFormOpen && (
           <div style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: 20, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }} onClick={(e) => { if (e.target === e.currentTarget) handleCloseRequest(); }}>
-            <aside style={{ background: "#161616", padding: 24, border: "1px solid rgba(183,37,52,0.2)", borderRadius: 12, width: "100%", maxWidth: 420, maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 50px rgba(0,0,0,0.5)" }}>
+            <aside className="elastic-modal" style={{ background: "#161616", padding: 24, border: "1px solid rgba(183,37,52,0.2)", borderRadius: 12, width: "100%", maxWidth: 420, maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 50px rgba(0,0,0,0.5)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
                 <h3 style={{ color: "#f2e4d4", margin: 0, fontSize: 20 }}>
                   {editing ? `تعديل #${editing.id}` : "إضافة معدّة جديدة"}
@@ -206,13 +206,13 @@ export function EquipmentAdmin() {
                   سعر الشراء (د.أ)
                   <input type="number" step="0.01" value={form.original_price} onChange={(e) => setForm({ ...form, original_price: Number(e.target.value) })} style={input} />
                 </label>
-                <button type="button" onClick={aiEstimate} disabled={aiLoading} style={{ ...btnSm, padding: "10px 12px", opacity: aiLoading ? 0.6 : 1, width: '100%', boxSizing: 'border-box' }}>
+                <button type="button" onClick={aiEstimate} disabled={aiLoading} className="elastic-press" style={{ ...btnSm, padding: "10px 12px", opacity: aiLoading ? 0.6 : 1, width: '100%', boxSizing: 'border-box' }}>
                   {aiLoading ? "جاري التقدير…" : "✦ اقتراح السعر بالذكاء الاصطناعي"}
                 </button>
                 {aiMsg && <p style={{ fontSize: 12, color: aiMsg.startsWith("تم") ? "#86efac" : "#ef6c6c", margin: 0 }}>{aiMsg}</p>}
                 <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                  <button type="submit" disabled={saving} style={{ ...btnRed, flex: 1 }}>{saving ? "..." : editing ? "حفظ التعديلات" : "إضافة"}</button>
-                  <button type="button" onClick={handleCloseRequest} style={btnSm}>إلغاء</button>
+                  <button type="submit" disabled={saving} className="elastic-press" style={{ ...btnRed, flex: 1 }}>{saving ? "..." : editing ? "حفظ التعديلات" : "إضافة"}</button>
+                  <button type="button" onClick={handleCloseRequest} className="elastic-press" style={btnSm}>إلغاء</button>
                 </div>
               </form>
             </aside>

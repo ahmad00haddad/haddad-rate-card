@@ -379,12 +379,25 @@
 .ratecard__price-row:nth-child(2){animation-delay:40ms}.ratecard__price-row:nth-child(3){animation-delay:80ms}.ratecard__price-row:nth-child(4){animation-delay:120ms}.ratecard__price-row:nth-child(n+5){animation-delay:160ms}
 .ratecard__price-value strong, .equipment-results strong { display:inline-block; animation: elastic-bump .45s var(--spring) both; }
 .equipment-card { animation-name: elastic-rise; animation-timing-function: var(--spring-soft); }
+
+/* Reusable elastic utilities */
+.elastic-press { transition: scale .38s var(--spring), translate .38s var(--spring), background-color .2s ease, color .2s ease, border-color .2s ease, opacity .2s ease; }
+.elastic-press:active { scale:.96; transition-duration:.12s; transition-timing-function:ease-out; }
+.elastic-modal { animation: elastic-settle .45s var(--spring-soft) both; }
+.elastic-rise { animation: elastic-rise .5s var(--spring-soft) both; }
+.elastic-pop { display:inline-block; animation: elastic-pop .5s var(--spring) both; }
+.equipment-search { transition: scale .38s var(--spring), border-color .2s ease; }
+.equipment-search:focus-within { scale:1.015; }
+
 @keyframes elastic-settle { from { opacity:0; scale:.985; translate:0 10px; } to { opacity:1; scale:1; translate:0 0; } }
 @keyframes elastic-rise { from { opacity:0; translate:0 14px; } to { opacity:1; translate:0 0; } }
 @keyframes elastic-bump { 0% { scale:.92; } 100% { scale:1; } }
+@keyframes elastic-pop { 0% { scale:.6; } 100% { scale:1; } }
 @media (prefers-reduced-motion: reduce) {
-  .ratecard__stage, .ratecard__price-row, .equipment-card, .ratecard__price-value strong, .equipment-results strong { animation:none !important; }
+  .ratecard__stage, .ratecard__price-row, .equipment-card, .ratecard__price-value strong, .equipment-results strong,
+  .elastic-modal, .elastic-rise, .elastic-pop { animation:none !important; }
   *:active { scale:1 !important; }
+  .equipment-search:focus-within { scale:1 !important; }
   * { transition-duration:.01ms !important; }
 }
 .ratecard__regions button,.ratecard__services button { transition: transform .4s var(--spring), scale .38s var(--spring), background-color .2s ease, border-color .2s ease, color .2s ease; }
