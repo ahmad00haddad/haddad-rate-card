@@ -23,7 +23,7 @@ export const Route = createFileRoute("/equipment")({
     <div className="equipment-state" dir="rtl">
       <Wrench aria-hidden="true" />
       <h1>تعذّر تحميل المعدات</h1>
-      <p>{error.message}</p>
+      <p>{error instanceof Error ? error.message : String(error)}</p>
       <Button onClick={reset}>إعادة المحاولة</Button>
     </div>
   ),
