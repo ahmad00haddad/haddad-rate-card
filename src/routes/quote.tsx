@@ -84,6 +84,7 @@ function QuotePage() {
       <div style={{ maxWidth: 720, margin: "0 auto" }}>
         <Link
           to="/"
+          className="elastic-press"
           style={{
             color: "#f49921",
             fontSize: 13,
@@ -110,6 +111,7 @@ function QuotePage() {
 
         {state === "sent" ? (
           <div
+            className="elastic-modal"
             style={{
               background: "rgba(244,153,33,0.1)",
               border: "1px solid rgba(244,153,33,0.4)",
@@ -118,7 +120,7 @@ function QuotePage() {
               textAlign: "center",
             }}
           >
-            <div style={{ fontSize: 40, marginBottom: 12 }}>✓</div>
+            <div className="elastic-pop" style={{ fontSize: 40, marginBottom: 12 }}>✓</div>
             <h2 style={{ fontSize: 20, marginBottom: 8, color: "#f49921" }}>
               تم استلام طلبك
             </h2>
@@ -136,6 +138,7 @@ function QuotePage() {
             <button
               type="button"
               onClick={() => setState("idle")}
+              className="elastic-press"
               style={{
                 marginTop: 20,
                 background: "transparent",
@@ -221,6 +224,7 @@ function QuotePage() {
 
             {err && (
               <div
+                className="elastic-rise"
                 style={{
                   background: "rgba(220,60,60,0.1)",
                   border: "1px solid rgba(220,60,60,0.4)",
@@ -237,6 +241,7 @@ function QuotePage() {
             <button
               type="submit"
               disabled={state === "sending"}
+              className="elastic-press"
               style={{
                 background: "#f49921",
                 color: "#0e0f11",
@@ -248,7 +253,6 @@ function QuotePage() {
                 cursor: state === "sending" ? "wait" : "pointer",
                 fontFamily: "inherit",
                 opacity: state === "sending" ? 0.6 : 1,
-                transition: "opacity 0.2s",
               }}
             >
               {state === "sending" ? "جاري الإرسال..." : "أرسل الطلب"}

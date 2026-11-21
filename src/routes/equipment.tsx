@@ -98,7 +98,7 @@ function EquipmentPage() {
         </div>
       </header>
 
-      <section className="equipment-hero">
+      <section className="equipment-hero elastic-modal">
         <p className="ratecard__eyebrow">CINEMATIC EQUIPMENT · JORDAN</p>
         <h1>{text("معرض ", "Equipment ")}<span>{text("المعدات", "Gallery")}</span></h1>
         <p>{text("الأدوات السينمائية التي نعتمد عليها لصناعة الصورة", "The cinematic tools behind every frame we create")}</p>
@@ -109,7 +109,7 @@ function EquipmentPage() {
       </section>
 
       <main className="equipment-main">
-        <section className="equipment-toolbar" aria-label={text("البحث والتصفية", "Search and filters")}>
+        <section className="equipment-toolbar elastic-rise" aria-label={text("البحث والتصفية", "Search and filters")}>
           <label className="equipment-search">
             <Search aria-hidden="true" />
             <span className="sr-only">{text("البحث", "Search")}</span>
@@ -128,7 +128,7 @@ function EquipmentPage() {
         {isLoading && <EquipmentSkeleton />}
 
         {error && (
-          <div className="equipment-inline-state">
+          <div className="equipment-inline-state elastic-rise">
             <p>{text("تعذّر تحميل المعدات حالياً.", "Equipment could not be loaded right now.")}</p>
             <Button variant="outline" onClick={() => void refetch()}>{text("إعادة المحاولة", "Try again")}</Button>
           </div>
@@ -162,7 +162,7 @@ function EquipmentPage() {
         )}
 
         {!isLoading && !error && filtered.length === 0 && (
-          <div className="equipment-inline-state"><Search aria-hidden="true" /><p>{text("لا توجد معدات تطابق بحثك.", "No equipment matches your search.")}</p></div>
+          <div className="equipment-inline-state elastic-rise"><Search aria-hidden="true" /><p>{text("لا توجد معدات تطابق بحثك.", "No equipment matches your search.")}</p></div>
         )}
       </main>
     </div>
